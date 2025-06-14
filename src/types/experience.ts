@@ -7,5 +7,5 @@ export interface ExperienceItem {
   company: string;
   period: string; // e.g., "Jan 2020 - Present"
   description: string;
-  icon?: LucideIcon;
+  iconName?: string; // Changed from icon: LucideIcon to iconName: string
 }

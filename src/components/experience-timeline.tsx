@@ -4,11 +4,22 @@
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Briefcase, CalendarDays, Building } from 'lucide-react';
+import { Briefcase, CalendarDays, Building, Zap, Lightbulb, BrainCircuit, Code, type LucideIcon } from 'lucide-react';
 
 interface ExperienceTimelineProps {
   experience: ExperienceItem[];
 }
+
+// Map icon names to actual Lucide components
+const iconMap: { [key: string]: LucideIcon } = {
+  Briefcase,
+  Zap,
+  Lightbulb,
+  BrainCircuit,
+  Code,
+  Building,
+  CalendarDays,
+};
 
 export default function ExperienceTimeline({ experience }: ExperienceTimelineProps) {
   if (!experience || experience.length === 0) {
@@ -22,7 +33,7 @@ export default function ExperienceTimeline({ experience }: ExperienceTimelinePro
 
       <div className="space-y-10">
         {experience.map((item, index) => {
-          const IconComponent = item.icon || Briefcase;
+          const IconComponent = item.iconName ? iconMap[item.iconName] || Briefcase : Briefcase;
           return (
             <div
               key={item.id}
