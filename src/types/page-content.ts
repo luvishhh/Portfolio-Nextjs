@@ -1,4 +1,5 @@
 // @/src/types/page-content.ts
+import type { ExperienceItem } from '@/types/experience';
 
 export interface HomePageContent {
   heroTitle: string;
@@ -22,10 +23,18 @@ export interface AboutPageContent {
   futureFocus: string;
   profileImage: string; // URL
   dataAiHint: string;
+  // Profile Card specific text fields
+  profileCardTitle: string;
+  profileCardHandle: string;
+  profileCardStatus: string;
+  profileCardContactText: string;
+  // Skills section
   coreCompetenciesTitle: string;
   coreCompetenciesSubtitle: string;
+  // Experience section
   chroniclesTitle: string;
   chroniclesSubtitle: string;
+  experienceItems: ExperienceItem[];
 }
 
 export interface ContactPageContent {
@@ -35,3 +44,4 @@ export interface ContactPageContent {
   contactEmail?: string;
   contactPhone?: string;
 }
+

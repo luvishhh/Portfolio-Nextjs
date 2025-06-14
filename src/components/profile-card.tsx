@@ -1,8 +1,8 @@
 
-"use client"; // Added "use client" as it uses refs, useEffect, and event handlers
+"use client"; 
 
 import React, { useEffect, useRef, useCallback, useMemo, ReactNode } from "react";
-import "./profile-card.css"; // Changed import path for CSS
+import "./profile-card.css"; 
 
 interface ProfileCardProps {
   avatarUrl: string;
@@ -21,6 +21,7 @@ interface ProfileCardProps {
   contactText?: string;
   showUserInfo?: boolean;
   onContactClick?: () => void;
+  "data-ai-hint"?: string; // Added to accept data-ai-hint
 }
 
 const DEFAULT_BEHIND_GRADIENT =
@@ -55,9 +56,9 @@ const easeInOutCubic = (x: number): number =>
   x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
-  avatarUrl, // Removed default placeholder, will be passed from AboutPage
-  iconUrl = "https://placehold.co/128x128.png?text=Pattern", // Default placeholder
-  grainUrl = "https://placehold.co/256x256.png?text=Grain", // Default placeholder
+  avatarUrl,
+  iconUrl = "https://placehold.co/128x128.png?text=Pattern", 
+  grainUrl = "https://placehold.co/256x256.png?text=Grain", 
   behindGradient,
   innerGradient,
   showBehindGradient = true,
@@ -71,6 +72,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   contactText = "Contact",
   showUserInfo = true,
   onContactClick,
+  "data-ai-hint": dataAiHint, // Destructure data-ai-hint
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -210,7 +212,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
 
     if (!card || !wrap) return;
 
-    // Check if window is defined (client-side)
     if (typeof window === "undefined") return;
 
 
@@ -222,7 +223,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     card.addEventListener("pointermove", pointerMoveHandler);
     card.addEventListener("pointerleave", pointerLeaveHandler);
 
-    // Ensure initial values are set after mount when clientWidth/Height are available
     const setInitialPosition = () => {
         if (wrapRef.current && cardRef.current) {
             const initialX = wrapRef.current.clientWidth - ANIMATION_CONFIG.INITIAL_X_OFFSET;
@@ -239,7 +239,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         }
     };
     
-    // Timeout to ensure dimensions are available
     const timeoutId = setTimeout(setInitialPosition, 100);
 
 
@@ -280,6 +279,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       ref={wrapRef}
       className={`pc-card-wrapper ${className}`.trim()}
       style={cardStyle}
+      data-ai-hint={dataAiHint} // Pass data-ai-hint to the outermost div
     >
       <section ref={cardRef} className="pc-card">
         <div className="pc-inside">
@@ -293,8 +293,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                // target.style.display = "none"; // Keep visible for placeholder
-                target.src = 'https://placehold.co/400x400.png?text=Avatar'; // Fallback
+                target.src = 'https://placehold.co/400x400.png?text=Avatar'; 
               }}
             />
             {showUserInfo && (
@@ -307,8 +306,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        // target.style.opacity = "0.5"; // Keep visible for placeholder
-                        target.src = avatarUrl || 'https://placehold.co/48x48.png?text=Mini'; // Fallback
+                        target.src = avatarUrl || 'https://placehold.co/48x48.png?text=Mini'; 
                       }}
                     />
                   </div>

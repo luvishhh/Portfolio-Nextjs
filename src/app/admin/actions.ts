@@ -5,8 +5,9 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { addProject as dbAddProject, updateProject as dbUpdateProject, deleteProject as dbDeleteProject } from "@/lib/projects";
 import type { Project } from "@/types/project";
-import { updateHomePageContent, updateAboutPageContent, updateContactPageContent, getAboutPageContent, getProjects } from "@/lib/page-content"; // Assuming getAboutPageContent might be needed for existing data
+import { updateHomePageContent, updateAboutPageContent, updateContactPageContent, getAboutPageContent, getProjects } from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
+import type { ExperienceItem } from "@/types/experience";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -52,7 +53,7 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | File | undefined | boolean | number>; // Adjusted for file and other types
+  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[]>; // Adjusted for file and other types
   success: boolean;
   projectId?: string; // For project actions
 };
@@ -104,7 +105,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     };
   }
 
-  const existingProject = getProjects().find(p => p.id === parsed.data.id); // In a real app, fetch from DB
+  const existingProject = getProjects().find(p => p.id === parsed.data.id); 
   if (!existingProject) {
     return { message: "Project not found for editing.", success: false };
   }
@@ -208,6 +209,16 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
   }
 }
 
+// Schema for Individual Experience Item
+const experienceItemSchema = z.object({
+  id: z.string().min(1, "Experience item ID is required."),
+  title: z.string().min(3, "Experience title is too short."),
+  company: z.string().min(2, "Company name is too short."),
+  period: z.string().min(5, "Period format is too short."),
+  description: z.string().min(10, "Experience description is too short."),
+  iconName: z.string().optional().describe("Lucide icon name (e.g., Zap, Briefcase)"),
+});
+
 // About Page Content Schema
 const aboutPageContentSchema = z.object({
   mainTitle: z.string().min(3, "Main title is too short."),
@@ -219,10 +230,37 @@ const aboutPageContentSchema = z.object({
   futureFocus: z.string().min(20, "Future focus is too short."),
   profileImageFile: fileSchema,
   dataAiHint: z.string().optional(),
+  profileCardTitle: z.string().min(3, "Profile card title is too short."),
+  profileCardHandle: z.string().min(3, "Profile card handle is too short."),
+  profileCardStatus: z.string().min(3, "Profile card status is too short."),
+  profileCardContactText: z.string().min(3, "Profile card contact text is too short."),
   coreCompetenciesTitle: z.string().min(5, "Core competencies title is too short."),
   coreCompetenciesSubtitle: z.string().min(10, "Core competencies subtitle is too short."),
   chroniclesTitle: z.string().min(5, "Chronicles title is too short."),
   chroniclesSubtitle: z.string().min(10, "Chronicles subtitle is too short."),
+  experienceItemsJSON: z.string().transform((str, ctx) => {
+    if (!str.trim()) { // Allow empty string to represent no items
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(str);
+      const validated = z.array(experienceItemSchema).safeParse(parsed);
+      if (!validated.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Invalid Experience Items JSON: " + validated.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', '),
+        });
+        return z.NEVER;
+      }
+      return validated.data;
+    } catch (e) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Experience Items field contains invalid JSON.",
+      });
+      return z.NEVER;
+    }
+  }).optional().default("[]"), // Default to empty array if not provided
 });
 
 export async function handleUpdateAboutPageContent(prevState: FormState, data: FormData): Promise<FormState> {
@@ -233,7 +271,7 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     return { 
       message: "Invalid about page data.", 
       issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`), 
-      fields: formData as any,
+      fields: formData as any, // Keep raw form data for re-population
       success: false 
     };
   }
@@ -245,18 +283,20 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
       newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL;
     }
     
-    const { profileImageFile, ...restOfData } = parsed.data;
+    const { profileImageFile, experienceItemsJSON, ...restOfData } = parsed.data;
+    
     const contentToUpdate: AboutPageContent = {
       ...currentContent, 
       ...restOfData,     
-      profileImage: newProfileImageUrl, 
+      profileImage: newProfileImageUrl,
+      experienceItems: experienceItemsJSON, // Already parsed and validated to ExperienceItem[]
     };
 
     updateAboutPageContent(contentToUpdate);
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
-    return { message: "About page content updated successfully!", success: true };
+    return { message: "About page content updated successfully!", success: true, fields: contentToUpdate as any };
   } catch (error) {
     let message = "Failed to update about page content.";
     if (error instanceof Error) {

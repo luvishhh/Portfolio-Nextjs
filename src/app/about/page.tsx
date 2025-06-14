@@ -1,30 +1,19 @@
 
 // @/app/about/page.tsx
-"use client"; // Added "use client" because ProfileCard is a client component
+"use client"; 
 
 import type { Metadata } from 'next';
-// Image component might not be needed if ProfileCard handles the image fully
-// import Image from 'next/image'; 
 import { UserCircle, Sparkles, History, Database, Cpu, Code } from 'lucide-react';
 import ExperienceTimeline from '@/components/experience-timeline';
-import { getExperience } from '@/lib/experience';
+// import { getExperience } from '@/lib/experience'; // No longer used directly
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAboutPageContent } from '@/lib/page-content';
-import ProfileCard from '@/components/profile-card'; // Import the new ProfileCard
-import '@/components/profile-card.css'; // Import the ProfileCard CSS
+import ProfileCard from '@/components/profile-card'; 
+import '@/components/profile-card.css'; 
 
-// Metadata can remain a server export if AboutPage is a server component by default
-// and ProfileCard is client-side. However, since we're making AboutPage client for ProfileCard,
-// this metadata might need to be handled differently or be static.
-// For now, assuming it can be generated or is static.
-// export const metadata: Metadata = { 
-//   title: 'About Me - Musefolio',
-//   description: 'Discover the architect behind Musefolio. My journey, skills, and vision for the digital frontier.',
-// };
 
-// Static skills data - could be made dynamic in a more complex setup
 const skills = [
   { name: "Quantum UI/UX Design", icon: Cpu, level: "Expert" },
   { name: "AI-Driven Prototyping", icon: Sparkles, level: "Advanced" },
@@ -34,11 +23,10 @@ const skills = [
 ];
 
 export default function AboutPage() {
-  const experienceItems: ExperienceItem[] = getExperience();
   const content = getAboutPageContent();
+  const experienceItems: ExperienceItem[] = content.experienceItems || []; // Get experience from page content
 
-  // Fallback for profile image if not set
-  const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png?text=Muse";
+  const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png";
 
 
   return (
@@ -56,25 +44,25 @@ export default function AboutPage() {
 
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-2 flex justify-center items-center animate-in fade-in-0 slide-in-from-left-20 duration-700 delay-300">
-              {/* Replace Image with ProfileCard */}
               <ProfileCard
                 avatarUrl={profileImageUrl}
-                miniAvatarUrl={profileImageUrl} // Can be the same or a different smaller one
+                miniAvatarUrl={profileImageUrl} 
                 name={content.name}
-                title="Digital Artisan & Visionary" // Or derive from content.mainSubtitle
-                handle={content.name.toLowerCase().replace(/\s+/g, '_')} // Example handle
-                status="Online" // Example status
-                iconUrl="https://placehold.co/200x200.png?text=BGPattern" // Placeholder for card's internal pattern
-                grainUrl="https://placehold.co/300x300.png?text=GrainFX" // Placeholder for card's grain effect
+                title={content.profileCardTitle}
+                handle={content.profileCardHandle}
+                status={content.profileCardStatus}
+                iconUrl="https://placehold.co/200x200.png?text=Pattern" 
+                grainUrl="https://placehold.co/300x300.png?text=GrainFX" 
                 enableTilt={true}
                 showUserInfo={true}
-                className="max-w-sm mx-auto" // Ensure card itself is constrained if needed
+                className="max-w-sm mx-auto"
                  onContactClick={() => {
                   if (typeof window !== 'undefined') {
                     window.location.href = '/contact';
                   }
                 }}
-                contactText="Reach Out"
+                contactText={content.profileCardContactText}
+                data-ai-hint={content.dataAiHint || 'profile avatar'}
               />
             </div>
             <div className="lg:col-span-3 space-y-5 animate-in fade-in-0 slide-in-from-right-20 duration-700 delay-400">
