@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Project } from "@/types/project";
 import type { FormState } from "@/app/admin/actions";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, FileImage } from "lucide-react";
 
 interface ProjectFormProps {
   formAction: (payload: FormData) => void;
@@ -33,7 +33,11 @@ export default function ProjectForm({ formAction, initialState, project, buttonT
     { id: "title", label: "Title", type: "text", defaultValue: project?.title, required: true },
     { id: "description", label: "Short Description", type: "textarea", defaultValue: project?.description, required: true, rows: 3 },
     { id: "detailedDescription", label: "Detailed Description", type: "textarea", defaultValue: project?.detailedDescription, required: true, rows: 6 },
-    { id: "images", label: "Image URLs (comma-separated)", type: "textarea", defaultValue: project?.images.join(', '), required: true, rows: 2, placeholder: "https://placehold.co/1200x800.png, https://placehold.co/800x600.png" },
+    // Main image upload field
+    { id: "mainImageFile", label: "Main Image (Upload)", type: "file", required: !project?.images?.[0] }, // Required if no existing image
+    { id: "dataAiHint", label: "AI Hint for Main Image", type: "text", defaultValue: project?.dataAiHint, placeholder: "e.g. abstract background" },
+    // Additional images via URLs
+    { id: "imageUrls", label: "Additional Image URLs (comma-separated)", type: "textarea", defaultValue: project?.images?.slice(1).join(', ') || '', rows: 2, placeholder: "https://placehold.co/800x600.png, ..." },
     { id: "tags", label: "Tags (comma-separated)", type: "text", defaultValue: project?.tags?.join(', '), placeholder: "UI/UX, Web Dev, React" },
     { id: "liveLink", label: "Live Link URL", type: "url", defaultValue: project?.liveLink, placeholder: "https://example.com" },
     { id: "repoLink", label: "Repository Link URL", type: "url", defaultValue: project?.repoLink, placeholder: "https://github.com/user/repo" },
@@ -41,7 +45,6 @@ export default function ProjectForm({ formAction, initialState, project, buttonT
     { id: "client", label: "Client", type: "text", defaultValue: project?.client },
     { id: "role", label: "Role", type: "text", defaultValue: project?.role },
     { id: "technologies", label: "Technologies (comma-separated)", type: "text", defaultValue: project?.technologies?.join(', '), placeholder: "React, Next.js, Tailwind" },
-    { id: "dataAiHint", label: "AI Hint for Main Image", type: "text", defaultValue: project?.dataAiHint, placeholder: "e.g. abstract background" },
   ];
 
   return (
@@ -60,6 +63,17 @@ export default function ProjectForm({ formAction, initialState, project, buttonT
               placeholder={field.placeholder}
               className="mt-1"
             />
+          ) : field.type === "file" ? (
+            <div className="mt-1 flex items-center space-x-2">
+              <FileImage className="h-5 w-5 text-muted-foreground" />
+              <Input
+                id={field.id}
+                name={field.id}
+                type="file"
+                accept="image/*" // Suggest image files
+                className="mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+            </div>
           ) : (
             <Input
               id={field.id}
@@ -70,6 +84,9 @@ export default function ProjectForm({ formAction, initialState, project, buttonT
               placeholder={field.placeholder}
               className="mt-1"
             />
+          )}
+           {field.id === "mainImageFile" && project?.images?.[0] && (
+            <p className="text-xs text-muted-foreground mt-1">Current main image: <a href={project.images[0]} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{project.images[0].substring(0,50)}...</a>. Uploading a new file will replace it.</p>
           )}
         </div>
       ))}
@@ -97,4 +114,3 @@ export default function ProjectForm({ formAction, initialState, project, buttonT
     </form>
   );
 }
-

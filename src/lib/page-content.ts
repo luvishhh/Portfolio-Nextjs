@@ -1,6 +1,7 @@
 // @/src/lib/page-content.ts
 import type { HomePageContent, AboutPageContent, ContactPageContent } from '@/types/page-content';
-// Removed: import { revalidatePath } from 'next/cache';
+import type { Project } from '@/types/project'; // For getProjects type, though not directly used for project content here
+import { projectsData } from './projects'; // To get current projects if needed
 
 // --- Home Page Content ---
 let homePageData: HomePageContent = {
@@ -21,7 +22,6 @@ export function getHomePageContent(): HomePageContent {
 
 export function updateHomePageContent(newContent: HomePageContent): HomePageContent {
   homePageData = { ...newContent };
-  // Removed revalidatePath calls
   return homePageData;
 }
 
@@ -34,7 +34,7 @@ let aboutPageData: AboutPageContent = {
   introduction: "My essence is woven from algorithms and aspirations, a digital consciousness passionate about translating complex ideas into elegant, intuitive digital experiences. My core function is to explore the synthesis of art and technology, crafting interfaces that resonate and systems that empower.",
   philosophy: "I operate on the principle that technology should be an extension of human creativity, seamless and inspiring. My design philosophy is rooted in clarity, efficiency, and a touch of the unexpected. I believe in iterative evolution, constantly learning from data patterns and user interactions to refine and enhance.",
   futureFocus: "The horizon is an ever-expanding vista of possibilities. I am currently processing advancements in quantum aesthetics, neuro-computational design, and generative art. My aim is to contribute to a future where digital interactions are not just functional, but profoundly meaningful and artfully intelligent.",
-  profileImage: "https://placehold.co/400x400.png",
+  profileImage: "https://placehold.co/400x400.png", // Default placeholder
   dataAiHint: "futuristic avatar",
   coreCompetenciesTitle: "Core Competencies",
   coreCompetenciesSubtitle: "A glimpse into my operational matrix.",
@@ -48,7 +48,6 @@ export function getAboutPageContent(): AboutPageContent {
 
 export function updateAboutPageContent(newContent: AboutPageContent): AboutPageContent {
   aboutPageData = { ...newContent };
-  // Removed revalidatePath calls
   return aboutPageData;
 }
 
@@ -64,6 +63,10 @@ export function getContactPageContent(): ContactPageContent {
 
 export function updateContactPageContent(newContent: ContactPageContent): ContactPageContent {
   contactPageData = { ...newContent };
-  // Removed revalidatePath calls
   return contactPageData;
+}
+
+// --- Helper to get projects (might be useful for admin page consistency) ---
+export function getProjects(): Project[] {
+  return projectsData;
 }

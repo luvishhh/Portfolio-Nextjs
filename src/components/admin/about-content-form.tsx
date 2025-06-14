@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { AboutPageContent } from "@/types/page-content";
 import type { FormState } from "@/app/admin/actions";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, FileImage } from "lucide-react";
 
 interface AboutContentFormProps {
   formAction: (payload: FormData) => void;
@@ -37,7 +37,8 @@ export default function AboutContentForm({ formAction, initialState, content, bu
     { id: "introduction", label: "Introduction Paragraph", type: "textarea", defaultValue: content.introduction, required: true, rows: 4 },
     { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: content.philosophy, required: true, rows: 3 },
     { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: content.futureFocus, required: true, rows: 3 },
-    { id: "profileImage", label: "Profile Image URL", type: "url", defaultValue: content.profileImage, required: true, placeholder: "https://placehold.co/400x400.png" },
+    // Profile image upload field
+    { id: "profileImageFile", label: "Profile Image Upload", type: "file", required: !content.profileImage },
     { id: "dataAiHint", label: "Profile Image AI Hint", type: "text", defaultValue: content.dataAiHint, placeholder: "e.g. futuristic avatar" },
     { id: "coreCompetenciesTitle", label: "Core Competencies Section Title", type: "text", defaultValue: content.coreCompetenciesTitle, required: true },
     { id: "coreCompetenciesSubtitle", label: "Core Competencies Section Subtitle", type: "text", defaultValue: content.coreCompetenciesSubtitle, required: true },
@@ -56,10 +57,21 @@ export default function AboutContentForm({ formAction, initialState, content, bu
               name={field.id}
               defaultValue={initialState.fields?.[field.id] ?? field.defaultValue}
               required={field.required}
-              rows={field.rows || 3}
+              rows={(field.rows as number) || 3}
               className="mt-1"
               placeholder={field.placeholder}
             />
+          ) : field.type === "file" ? (
+            <div className="mt-1 flex items-center space-x-2">
+               <FileImage className="h-5 w-5 text-muted-foreground" />
+              <Input
+                id={field.id}
+                name={field.id}
+                type="file"
+                accept="image/*"
+                className="mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+            </div>
           ) : (
             <Input
               id={field.id}
@@ -70,6 +82,9 @@ export default function AboutContentForm({ formAction, initialState, content, bu
               className="mt-1"
               placeholder={field.placeholder}
             />
+          )}
+          {field.id === "profileImageFile" && content.profileImage && (
+            <p className="text-xs text-muted-foreground mt-1">Current profile image: <a href={content.profileImage} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{content.profileImage.substring(0,50)}...</a>. Uploading a new file will replace it.</p>
           )}
         </div>
       ))}
