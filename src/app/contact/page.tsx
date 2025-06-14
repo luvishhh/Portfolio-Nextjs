@@ -1,0 +1,94 @@
+// @/app/contact/page.tsx
+"use client";
+
+import { useFormState, useFormStatus } from "react-dom";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { submitContactForm, type ContactFormState } from "./actions";
+import { useToast } from "@/hooks/use-toast";
+import { MailCheck, AlertCircle, Loader2 } from "lucide-react";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+      {pending ? "Sending..." : "Send Message"}
+    </Button>
+  );
+}
+
+export default function ContactPage() {
+  const initialState: ContactFormState = { message: "", success: false };
+  const [state, formAction] = useFormState(submitContactForm, initialState);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.success) {
+        toast({
+          title: "Success!",
+          description: state.message,
+          variant: "default",
+          action: <MailCheck className="h-5 w-5 text-green-500" />,
+        });
+        // Optionally reset form fields here if you manage them with useState
+      } else {
+        toast({
+          title: "Error",
+          description: state.message || "An unexpected error occurred.",
+          variant: "destructive",
+          action: <AlertCircle className="h-5 w-5 text-red-500" />,
+        });
+      }
+    }
+  }, [state, toast]);
+  
+  return (
+    <div className="max-w-2xl mx-auto py-8 animate-in fade-in-0 duration-500">
+      <Card className="shadow-xl bg-card">
+        <CardHeader className="text-center">
+          <CardTitle className="font-headline text-4xl text-primary">Get In Touch</CardTitle>
+          <CardDescription className="text-lg">
+            Have a project in mind or just want to say hi? Fill out the form below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction} className="space-y-6">
+            <div>
+              <Label htmlFor="name" className="font-semibold">Full Name</Label>
+              <Input id="name" name="name" type="text" placeholder="Your Name" required className="mt-1"/>
+              {state.issues && state.fields?.name === "" && <p className="text-sm text-destructive mt-1">Name is required.</p>}
+            </div>
+            <div>
+              <Label htmlFor="email" className="font-semibold">Email Address</Label>
+              <Input id="email" name="email" type="email" placeholder="your.email@example.com" required className="mt-1"/>
+              {state.issues && state.fields?.email === "" && <p className="text-sm text-destructive mt-1">Email is required.</p>}
+            </div>
+            <div>
+              <Label htmlFor="subject" className="font-semibold">Subject (Optional)</Label>
+              <Input id="subject" name="subject" type="text" placeholder="Project Inquiry" className="mt-1"/>
+            </div>
+            <div>
+              <Label htmlFor="message" className="font-semibold">Message</Label>
+              <Textarea id="message" name="message" placeholder="Tell us about your project or query..." required rows={5} className="mt-1"/>
+              {state.issues && state.fields?.message === "" && <p className="text-sm text-destructive mt-1">Message is required.</p>}
+            </div>
+            {state.issues && (
+              <div className="text-sm text-destructive">
+                {state.issues.map((issue) => (
+                  <p key={issue}>{issue}</p>
+                ))}
+              </div>
+            )}
+            <SubmitButton />
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
