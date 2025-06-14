@@ -1,13 +1,13 @@
 // @/app/admin/edit/[id]/page.tsx
 "use client";
 
-import { useActionState } from "react"; // Changed from react-dom
-import { useEffect } from "react";
+import { useActionState } from "react";
+import { useEffect, use } from "react"; // Import use
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProjectForm from "@/components/admin/project-form";
-import { handleEditProject, type FormState } from "../../actions"; // Adjusted path
-import { getProjects } from "@/lib/projects"; // Using getProjects to find by ID
+import { handleEditProject, type FormState } from "../../actions"; 
+import { getProjects } from "@/lib/projects"; 
 import type { Project } from "@/types/project";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,19 @@ function getProjectById(id: string): Project | undefined {
   return projects.find(p => p.id === id);
 }
 
-export default function EditProjectPage({ params }: { params: { id: string } }) {
-  const project = getProjectById(params.id);
+// Define the type for params, acknowledging it might be a Promise as per Next.js warning
+type PageParams = { id: string };
+type EditProjectPageProps = {
+  params: Promise<PageParams>; // Next.js warning implies params will be a Promise
+};
+
+export default function EditProjectPage({ params }: EditProjectPageProps) {
+  // Use React.use() to unwrap the params Promise
+  const resolvedParams = use(params);
+  const project = getProjectById(resolvedParams.id);
+  
   const initialState: FormState = { message: "", success: false };
-  const [state, formAction] = useActionState(handleEditProject, initialState); // Changed from useFormState
+  const [state, formAction] = useActionState(handleEditProject, initialState);
   const { toast } = useToast();
   const router = useRouter();
 
