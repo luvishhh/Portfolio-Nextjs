@@ -135,6 +135,9 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
 
   try {
     updateHomePageContent(parsed.data as HomePageContent);
+    revalidatePath('/'); 
+    revalidatePath('/admin/edit-home');
+    revalidatePath('/admin');
     return { message: "Home page content updated successfully!", success: true };
   } catch (error) {
     let message = "Failed to update home page content.";
@@ -175,6 +178,9 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
   }
   try {
     updateAboutPageContent(parsed.data as AboutPageContent);
+    revalidatePath('/about');
+    revalidatePath('/admin/edit-about');
+    revalidatePath('/admin');
     return { message: "About page content updated successfully!", success: true };
   } catch (error) {
     let message = "Failed to update about page content.";
@@ -204,6 +210,9 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
   }
   try {
     updateContactPageContent(parsed.data as ContactPageContent);
+    revalidatePath('/contact');
+    revalidatePath('/admin/edit-contact');
+    revalidatePath('/admin');
     return { message: "Contact page content updated successfully!", success: true };
   } catch (error) {
     let message = "Failed to update contact page content.";

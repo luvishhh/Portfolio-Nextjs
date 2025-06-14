@@ -1,6 +1,6 @@
 // @/src/lib/page-content.ts
 import type { HomePageContent, AboutPageContent, ContactPageContent } from '@/types/page-content';
-import { revalidatePath } from 'next/cache';
+// Removed: import { revalidatePath } from 'next/cache';
 
 // --- Home Page Content ---
 let homePageData: HomePageContent = {
@@ -21,9 +21,7 @@ export function getHomePageContent(): HomePageContent {
 
 export function updateHomePageContent(newContent: HomePageContent): HomePageContent {
   homePageData = { ...newContent };
-  revalidatePath('/'); 
-  revalidatePath('/admin/edit-home');
-  revalidatePath('/admin');
+  // Removed revalidatePath calls
   return homePageData;
 }
 
@@ -50,9 +48,7 @@ export function getAboutPageContent(): AboutPageContent {
 
 export function updateAboutPageContent(newContent: AboutPageContent): AboutPageContent {
   aboutPageData = { ...newContent };
-  revalidatePath('/about');
-  revalidatePath('/admin/edit-about');
-  revalidatePath('/admin');
+  // Removed revalidatePath calls
   return aboutPageData;
 }
 
@@ -68,8 +64,6 @@ export function getContactPageContent(): ContactPageContent {
 
 export function updateContactPageContent(newContent: ContactPageContent): ContactPageContent {
   contactPageData = { ...newContent };
-  revalidatePath('/contact');
-  revalidatePath('/admin/edit-contact');
-  revalidatePath('/admin');
+  // Removed revalidatePath calls
   return contactPageData;
 }
