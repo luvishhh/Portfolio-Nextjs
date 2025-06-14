@@ -1,3 +1,4 @@
+
 // @/app/admin/actions.ts
 "use server";
 
@@ -7,15 +8,16 @@ import {
   addProject as dbAddProject, 
   updateProject as dbUpdateProject, 
   deleteProject as dbDeleteProject,
-  getProjectById // Used for edit form initial data if needed
+  getProjectById
 } from "@/lib/projects";
 import type { Project } from "@/types/project";
 import { 
   updateHomePageContent as dbUpdateHomePageContent, 
   updateAboutPageContent as dbUpdateAboutPageContent, 
   updateContactPageContent as dbUpdateContactPageContent,
-  // getAboutPageContent, // No longer needed here, forms will fetch client-side
-  // getProjects // No longer needed here
+  getAboutPageContent, // Now needed in the action
+  getHomePageContent,
+  getContactPageContent,
 } from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
 import type { ExperienceItem } from "@/types/experience";
@@ -23,7 +25,6 @@ import type { ExperienceItem } from "@/types/experience";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 
-// Simulated URL for "uploaded" files
 const SIMULATED_PROJECT_MAIN_IMAGE_URL = "https://placehold.co/1200x800.png";
 const SIMULATED_PROFILE_IMAGE_URL = "https://placehold.co/400x400.png";
 
@@ -57,7 +58,7 @@ const addProjectSchema = projectSchemaBase.refine(data => {
 });
 
 const editProjectSchema = projectSchemaBase.extend({
-  id: z.string(), // This will be MongoDB ObjectId as string
+  id: z.string(),
 });
 
 
@@ -206,11 +207,11 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
   }
 
   try {
-    await dbUpdateHomePageContent(parsed.data as HomePageContent);
+    const updatedContent = await dbUpdateHomePageContent(parsed.data as HomePageContent);
     revalidatePath('/'); 
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
-    return { message: "Home page content updated successfully!", success: true, fields: parsed.data as any };
+    return { message: "Home page content updated successfully!", success: true, fields: updatedContent as any };
   } catch (error) {
     console.error("handleUpdateHomePageContent error:", error);
     let message = "Failed to update home page content. Check server logs.";
@@ -239,7 +240,7 @@ const aboutPageContentSchema = z.object({
   philosophy: z.string().min(20, "Philosophy is too short."),
   futureFocus: z.string().min(20, "Future focus is too short."),
   profileImageFile: fileSchema, 
-  dataAiHint: z.string().optional(), 
+  dataAiHint: z.string().optional().default("profile avatar"), 
   profileCardTitle: z.string().min(3, "Profile card title is too short."),
   profileCardHandle: z.string().min(3, "Profile card handle is too short."),
   profileCardStatus: z.string().min(3, "Profile card status is too short."),
@@ -286,34 +287,31 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     };
   }
   try {
-    // Fetch current content to preserve fields not directly in form, like existing profileImage URL if not changed
-    // This call to getAboutPageContent might need to be async if it fetches from DB.
-    // For simplicity, if lib/page-content.ts getAboutPageContent becomes async, this action needs to handle it
-    // OR we assume that the form sends all necessary fields, and we don't merge with existing.
-    // Let's assume the form should provide all current text data, and we only update the image if a new one is uploaded.
-    // const currentContent = await getAboutPageContent();  // This would be the DB version.
+    const currentContent = await getAboutPageContent(); // Fetch current content to preserve unchanged fields like existing image URL
+    
+    const { profileImageFile, experienceItemsJSON, ...restOfDataFromForm } = parsed.data;
 
-    let newProfileImageUrl: string | undefined = undefined; // Will be set if new image uploaded
-    const { profileImageFile, experienceItemsJSON, ...restOfData } = parsed.data;
-
+    let profileImageToSave = currentContent.profileImage; // Default to existing image
     if (profileImageFile && profileImageFile.size > 0) {
-      newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL; 
+      profileImageToSave = SIMULATED_PROFILE_IMAGE_URL; // Replace with new "uploaded" image URL
     }
     
-    const contentToUpdate: Partial<AboutPageContent> = { // Use Partial as we might not update image
-      ...restOfData,
-      experienceItems: experienceItemsJSON,
+    const fullContentToUpdate: AboutPageContent = {
+      ...currentContent, // Start with existing values from DB (or defaults if DB was empty)
+      ...restOfDataFromForm, // Override with all validated text fields from the form
+      experienceItems: experienceItemsJSON, // Override with parsed experience items
+      profileImage: profileImageToSave, // Set the determined profile image URL
+      // Ensure dataAiHint is handled: if not in form, Zod default might apply, or use current.
+      // Zod schema now has .default("profile avatar") for dataAiHint.
+      // So restOfDataFromForm.dataAiHint will have a value.
     };
 
-    if (newProfileImageUrl) {
-      contentToUpdate.profileImage = newProfileImageUrl;
-    }
-
-    const updatedContent = await dbUpdateAboutPageContent(contentToUpdate);
+    const finalUpdatedContent = await dbUpdateAboutPageContent(fullContentToUpdate);
+    
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
-    return { message: "About page content updated successfully!", success: true, fields: updatedContent as any };
+    return { message: "About page content updated successfully!", success: true, fields: finalUpdatedContent as any };
   } catch (error) {
     console.error("handleUpdateAboutPageContent error:", error);
     let message = "Failed to update about page content. Check server logs.";
@@ -344,11 +342,13 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     };
   }
   try {
-    await dbUpdateContactPageContent(parsed.data as ContactPageContent);
+    // For contact page, it's simpler as it doesn't have image uploads or complex JSON structures like About.
+    // We can directly pass parsed.data, assuming the schema covers all fields of ContactPageContent.
+    const updatedContent = await dbUpdateContactPageContent(parsed.data as ContactPageContent);
     revalidatePath('/contact');
     revalidatePath('/admin/edit-contact');
     revalidatePath('/admin');
-    return { message: "Contact page content updated successfully!", success: true, fields: parsed.data as any };
+    return { message: "Contact page content updated successfully!", success: true, fields: updatedContent as any };
   } catch (error) {
     console.error("handleUpdateContactPageContent error:", error);
     let message = "Failed to update contact page content. Check server logs.";
@@ -358,3 +358,5 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     return { message, success: false, fields: formData as any };
   }
 }
+
+    
