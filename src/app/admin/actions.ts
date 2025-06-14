@@ -78,11 +78,6 @@ export async function handleAddProject(prevState: FormState, data: FormData): Pr
     projectImages.push(...parsed.data.imageUrls);
   }
 
-  // This check is now part of the Zod schema for addProjectSchema
-  // if (projectImages.length === 0) {
-  //   return { message: "At least one image (main upload or additional URL) is required.", success: false, fields: formData as any };
-  // }
-
   const { mainImageFile, imageUrls, ...restOfData } = parsed.data;
 
   try {
@@ -122,19 +117,15 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     if (imageUrls) {
       updatedImageArray.push(...imageUrls);
     }
-  } else { // No new main image file uploaded
-    if (imageUrls && imageUrls.length > 0) { // Manual URLs provided, these become the full list
+  } else { 
+    if (imageUrls && imageUrls.length > 0) { 
       updatedImageArray = [...imageUrls];
-    } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) { // Manual URLs are explicitly empty string, meaning clear them
-       // If mainImageFile was not touched and imageUrls is empty string, this implies clearing additional images,
-       // but keeping the main one if it exists and wasn't replaced.
-       // If there was an existing main image and no new main image file, keep it.
+    } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) { 
        if(existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0)) {
          updatedImageArray.push(existingProject.images[0]);
        }
-       // Then imageUrls (which is empty array here) are effectively applied.
     }
-     else { // No new main file, no new manual URLs, keep existing images entirely.
+     else { 
       updatedImageArray = [...existingProject.images];
     }
   }
@@ -247,8 +238,8 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     };
   }
   try {
-    const currentContent = getAboutPageContent(); // Fetch current content
-    let newProfileImageUrl = currentContent.profileImage; // Keep existing by default
+    const currentContent = getAboutPageContent(); 
+    let newProfileImageUrl = currentContent.profileImage; 
 
     if (parsed.data.profileImageFile && parsed.data.profileImageFile.size > 0) {
       newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL;
@@ -256,9 +247,9 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     
     const { profileImageFile, ...restOfData } = parsed.data;
     const contentToUpdate: AboutPageContent = {
-      ...currentContent, // Spread current content to ensure all fields are present
-      ...restOfData,     // Spread parsed data (excluding the file)
-      profileImage: newProfileImageUrl, // Set the potentially updated image URL
+      ...currentContent, 
+      ...restOfData,     
+      profileImage: newProfileImageUrl, 
     };
 
     updateAboutPageContent(contentToUpdate);
@@ -279,6 +270,9 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
 const contactPageContentSchema = z.object({
   title: z.string().min(5, "Title is too short."),
   description: z.string().min(10, "Description is too short."),
+  contactName: z.string().min(2, "Contact name is too short.").optional(),
+  contactEmail: z.string().email("Invalid email address.").optional(),
+  contactPhone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format.").optional().or(z.literal('')),
 });
 
 export async function handleUpdateContactPageContent(prevState: FormState, data: FormData): Promise<FormState> {

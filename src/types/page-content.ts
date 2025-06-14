@@ -31,4 +31,7 @@ export interface AboutPageContent {
 export interface ContactPageContent {
   title: string;
   description: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }

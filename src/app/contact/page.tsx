@@ -1,8 +1,8 @@
 // @/app/contact/page.tsx
 "use client";
 
-import { useActionState } from "react"; // Changed from react-dom
-import { useFormStatus } from "react-dom"; // useFormStatus stays from react-dom
+import { useActionState } from "react"; 
+import { useFormStatus } from "react-dom"; 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { submitContactForm, type ContactFormState } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { MailCheck, AlertCircle, Loader2 } from "lucide-react";
+import { MailCheck, AlertCircle, Loader2, User, Phone, Mail as MailIcon } from "lucide-react"; // Added User, Phone, MailIcon
 import { getContactPageContent } from "@/lib/page-content";
 
 function SubmitButton() {
@@ -26,7 +26,7 @@ function SubmitButton() {
 
 export default function ContactPage() {
   const initialState: ContactFormState = { message: "", success: false };
-  const [state, formAction] = useActionState(submitContactForm, initialState); // Changed from useFormState
+  const [state, formAction] = useActionState(submitContactForm, initialState); 
   const { toast } = useToast();
   const content = getContactPageContent();
 
@@ -39,7 +39,6 @@ export default function ContactPage() {
           variant: "default",
           action: <MailCheck className="h-5 w-5 text-green-500" />,
         });
-        // Optionally reset form fields here if you manage them with useState
       } else {
         toast({
           title: "Error",
@@ -52,13 +51,52 @@ export default function ContactPage() {
   }, [state, toast]);
   
   return (
-    <div className="max-w-2xl mx-auto py-8 animate-in fade-in-0 duration-500">
-      <Card className="shadow-xl bg-card">
+    <div className="max-w-3xl mx-auto py-8 animate-in fade-in-0 duration-500">
+      <Card className="shadow-xl bg-card mb-10">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-4xl text-primary">{content.title}</CardTitle>
           <CardDescription className="text-lg">
             {content.description}
           </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {(content.contactName || content.contactEmail || content.contactPhone) && (
+        <Card className="shadow-lg bg-background/70 backdrop-blur-sm mb-10">
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl text-primary">Contact Information</CardTitle>
+            <CardDescription>You can also reach out to us directly:</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {content.contactName && (
+              <div className="flex items-center">
+                <User className="h-5 w-5 mr-3 text-accent" />
+                <p className="text-foreground">{content.contactName}</p>
+              </div>
+            )}
+            {content.contactEmail && (
+              <div className="flex items-center">
+                <MailIcon className="h-5 w-5 mr-3 text-accent" />
+                <a href={`mailto:${content.contactEmail}`} className="text-foreground hover:text-primary underline">
+                  {content.contactEmail}
+                </a>
+              </div>
+            )}
+            {content.contactPhone && (
+              <div className="flex items-center">
+                <Phone className="h-5 w-5 mr-3 text-accent" />
+                <a href={`tel:${content.contactPhone}`} className="text-foreground hover:text-primary underline">
+                  {content.contactPhone}
+                </a>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="shadow-xl bg-card">
+        <CardHeader>
+            <CardTitle className="font-headline text-2xl text-center text-primary">Send a Message</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-6">
@@ -81,7 +119,7 @@ export default function ContactPage() {
               <Textarea id="message" name="message" placeholder="Tell us about your project or query..." required rows={5} className="mt-1"/>
               {state.issues && state.fields?.message === "" && <p className="text-sm text-destructive mt-1">Message is required.</p>}
             </div>
-            {state.issues && (
+            {state.issues && !state.fields?.name && !state.fields?.email && !state.fields?.message && (
               <div className="text-sm text-destructive">
                 {state.issues.map((issue) => (
                   <p key={issue}>{issue}</p>

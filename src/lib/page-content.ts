@@ -54,7 +54,10 @@ export function updateAboutPageContent(newContent: AboutPageContent): AboutPageC
 // --- Contact Page Content ---
 let contactPageData: ContactPageContent = {
   title: 'Get In Touch',
-  description: 'Have a project in mind or just want to say hi? Fill out the form below.',
+  description: 'Have a project in mind or just want to say hi? Fill out the form below, or reach out directly using the details provided.',
+  contactName: 'MuseFolio Admin',
+  contactEmail: 'contact@musefolio.example',
+  contactPhone: '+1 (555) 123-4567',
 };
 
 export function getContactPageContent(): ContactPageContent {

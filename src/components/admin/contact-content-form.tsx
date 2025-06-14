@@ -32,6 +32,9 @@ export default function ContactContentForm({ formAction, initialState, content, 
   const fields = [
     { id: "title", label: "Page Title (e.g., 'Get In Touch')", type: "text", defaultValue: content.title, required: true },
     { id: "description", label: "Page Description (Text above the form)", type: "textarea", defaultValue: content.description, required: true, rows: 3 },
+    { id: "contactName", label: "Contact Name", type: "text", defaultValue: content.contactName, placeholder: "Your Full Name" },
+    { id: "contactEmail", label: "Contact Email Address", type: "email", defaultValue: content.contactEmail, placeholder: "email@example.com" },
+    { id: "contactPhone", label: "Contact Phone Number (Optional)", type: "tel", defaultValue: content.contactPhone, placeholder: "+1 555-123-4567" },
   ];
 
   return (
@@ -47,6 +50,7 @@ export default function ContactContentForm({ formAction, initialState, content, 
               required={field.required}
               rows={field.rows || 3}
               className="mt-1"
+              placeholder={field.placeholder}
             />
           ) : (
             <Input
@@ -56,6 +60,7 @@ export default function ContactContentForm({ formAction, initialState, content, 
               defaultValue={initialState.fields?.[field.id] ?? field.defaultValue}
               required={field.required}
               className="mt-1"
+              placeholder={field.placeholder}
             />
           )}
         </div>
