@@ -1,5 +1,37 @@
 
 :root {
+  /* Theme HSL Components (derived from globals.css for use here) */
+  /* Example: --primary: 46 31% 56%; */
+  --theme-primary-h: 46;
+  --theme-primary-s: 31%;
+  --theme-primary-l: 56%;
+
+  /* Example: --accent: 73 16% 50%; */
+  --theme-accent-h: 73;
+  --theme-accent-s: 16%;
+  --theme-accent-l: 50%;
+
+  /* Example: --secondary: 50 15% 88%; */
+  --theme-secondary-h: 50;
+  --theme-secondary-s: 15%;
+  --theme-secondary-l: 88%;
+
+  /* Example: --foreground: 220 15% 25%; */
+  --theme-foreground-h: 220;
+  --theme-foreground-s: 15%;
+  --theme-foreground-l: 25%;
+  
+  /* Example: --background: 50 27% 94%; */
+  --theme-background-h: 50;
+  --theme-background-s: 27%;
+  --theme-background-l: 94%;
+
+  /* Example: --card: 50 27% 97%; */
+  --theme-card-h: 50;
+  --theme-card-s: 27%;
+  --theme-card-l: 97%;
+
+  /* ProfileCard specific vars */
   --pointer-x: 50%;
   --pointer-y: 50%;
   --pointer-from-center: 0;
@@ -10,23 +42,53 @@
   --rotate-y: 0deg;
   --background-x: 50%;
   --background-y: 50%;
-  --grain: none;
-  --icon: none;
-  --behind-gradient: none;
-  --inner-gradient: none;
-  --sunpillar-1: hsl(2, 100%, 73%);
-  --sunpillar-2: hsl(53, 100%, 69%);
-  --sunpillar-3: hsl(93, 100%, 69%);
-  --sunpillar-4: hsl(176, 100%, 76%);
-  --sunpillar-5: hsl(228, 100%, 74%);
-  --sunpillar-6: hsl(283, 100%, 73%);
-  --sunpillar-clr-1: var(--sunpillar-1);
-  --sunpillar-clr-2: var(--sunpillar-2);
-  --sunpillar-clr-3: var(--sunpillar-3);
-  --sunpillar-clr-4: var(--sunpillar-4);
-  --sunpillar-clr-5: var(--sunpillar-5);
-  --sunpillar-clr-6: var(--sunpillar-6);
+  --grain: none; /* Assuming grainUrl is provided by component props */
+  --icon: none;  /* Assuming iconUrl is provided by component props */
   --card-radius: 30px;
+
+  /* Sunpillar colors derived from theme */
+  --sunpillar-clr-1: hsl(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l));
+  --sunpillar-clr-2: hsl(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l));
+  --sunpillar-clr-3: hsl(var(--theme-secondary-h), var(--theme-secondary-s), calc(var(--theme-secondary-l) - 10%)); /* Darker secondary for variation */
+  --sunpillar-clr-4: hsl(var(--theme-primary-h), calc(var(--theme-primary-s) + 10%), calc(var(--theme-primary-l) + 5%)); /* Brighter primary */
+  --sunpillar-clr-5: hsl(var(--theme-accent-h), calc(var(--theme-accent-s) + 10%), calc(var(--theme-accent-l) + 5%));   /* Brighter accent */
+  --sunpillar-clr-6: hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 10%));  /* Darker primary */
+
+  /* Gradients using theme colors */
+  --behind-gradient-base: conic-gradient(
+    from 124deg at 50% 50%,
+    hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 10%)) 0%, /* Darker Primary */
+    hsl(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l)) 40%,
+    hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 10%)) 60%, /* Lighter Accent */
+    hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 10%)) 100%
+  );
+
+  --card-main-bg-radial-1: radial-gradient(
+    farthest-side circle at var(--pointer-x) var(--pointer-y),
+    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 20%), var(--card-opacity)) 4%, /* Lighter Primary transparent */
+    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), calc(var(--card-opacity) * 0.75)) 10%,
+    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), calc(var(--card-opacity) * 0.5)) 50%,
+    hsla(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) - 10%), 0) 100% /* Darker Accent transparent */
+  );
+  --card-main-bg-radial-2: radial-gradient(
+    35% 52% at 55% 20%,
+    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), 0.77) 0%, /* Accent transparent */
+    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), 0) 100%
+  );
+  --card-main-bg-radial-3: radial-gradient(
+    100% 100% at 50% 50%,
+    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.8) 1%, /* Primary transparent */
+    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0) 76%
+  );
+  
+  /* Default behind-gradient will be set by JS if prop not provided, this is a fallback for the CSS var structure */
+  --behind-gradient: var(--card-main-bg-radial-1), var(--card-main-bg-radial-2), var(--card-main-bg-radial-3), var(--behind-gradient-base);
+
+  /* Default inner-gradient will be set by JS if prop not provided */
+  --inner-gradient: linear-gradient(145deg, 
+    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 15%), 0.55) 0%, /* Darker Primary transparent */
+    hsla(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 5%), 0.27) 100% /* Lighter Accent transparent */
+  );
 }
 
 .pc-card-wrapper {
@@ -34,9 +96,9 @@
   transform: translate3d(0, 0, 0.1px);
   position: relative;
   touch-action: none;
-  width: fit-content; /* Added to constrain wrapper */
-  margin-left: auto; /* Added for centering */
-  margin-right: auto; /* Added for centering */
+  width: fit-content; 
+  margin-left: auto; 
+  margin-right: auto; 
 }
 
 .pc-card-wrapper::before {
@@ -73,12 +135,14 @@
   position: relative;
   background-blend-mode: color-dodge, normal, normal, normal;
   animation: glow-bg 12s linear infinite;
-  box-shadow: rgba(0, 0, 0, 0.8) calc((var(--pointer-from-left) * 10px) - 3px) calc((var(--pointer-from-top) * 20px) - 6px) 20px -5px;
+  box-shadow: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%), 0.8) /* Darker foreground for shadow */
+              calc((var(--pointer-from-left) * 10px) - 3px) 
+              calc((var(--pointer-from-top) * 20px) - 6px) 20px -5px;
   transition: transform 1s ease;
   transform: translate3d(0, 0, 0.1px) rotateX(0deg) rotateY(0deg);
   background-size: 100% 100%;
   background-position: 0 0, 0 0, 50% 50%, 0 0;
-  background-image: radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y), hsla(266, 100%, 90%, var(--card-opacity)) 4%, hsla(266, 50%, 80%, calc(var(--card-opacity) * 0.75)) 10%, hsla(266, 25%, 70%, calc(var(--card-opacity) * 0.5)) 50%, hsla(266, 0%, 60%, 0) 100%), radial-gradient(35% 52% at 55% 20%, #00ffaac4 0%, #073aff00 100%), radial-gradient(100% 100% at 50% 50%, #00c1ffff 1%, #073aff00 76%), conic-gradient(from 124deg at 50% 50%, #c137ffff 0%, #07c6ffff 40%, #07c6ffff 60%, #c137ffff 100%);
+  background-image: var(--card-main-bg-radial-1), var(--card-main-bg-radial-2), var(--card-main-bg-radial-3), var(--behind-gradient-base);
   overflow: hidden;
 }
 
@@ -100,7 +164,7 @@
   inset: 1px;
   position: absolute;
   background-image: var(--inner-gradient);
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 10%), 0.9); /* Darker foreground as base */
   transform: translate3d(0, 0, 0.01px);
 }
 
@@ -126,7 +190,26 @@
   background: transparent;
   background-size: cover;
   background-position: center;
-  background-image: repeating-linear-gradient(0deg, var(--sunpillar-clr-1) calc(var(--space) * 1), var(--sunpillar-clr-2) calc(var(--space) * 2), var(--sunpillar-clr-3) calc(var(--space) * 3), var(--sunpillar-clr-4) calc(var(--space) * 4), var(--sunpillar-clr-5) calc(var(--space) * 5), var(--sunpillar-clr-6) calc(var(--space) * 6), var(--sunpillar-clr-1) calc(var(--space) * 7)), repeating-linear-gradient(var(--angle), #0e152e 0%, hsl(180, 10%, 60%) 3.8%, hsl(180, 29%, 66%) 4.5%, hsl(180, 10%, 60%) 5.2%, #0e152e 10%, #0e152e 12%), radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 0%, 0.1) 12%, hsla(0, 0%, 0%, 0.15) 20%, hsla(0, 0%, 0%, 0.25) 120%);
+  /* Shine colors are now theme derived via --sunpillar-clr-* */
+  background-image: repeating-linear-gradient(0deg, 
+                      var(--sunpillar-clr-1) calc(var(--space) * 1), 
+                      var(--sunpillar-clr-2) calc(var(--space) * 2), 
+                      var(--sunpillar-clr-3) calc(var(--space) * 3), 
+                      var(--sunpillar-clr-4) calc(var(--space) * 4), 
+                      var(--sunpillar-clr-5) calc(var(--space) * 5), 
+                      var(--sunpillar-clr-6) calc(var(--space) * 6), 
+                      var(--sunpillar-clr-1) calc(var(--space) * 7)), 
+                    repeating-linear-gradient(var(--angle), 
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%)) 0%, /* Darker Foreground */
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 20%)) 3.8%, /* Lighter Foreground */
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 25%)) 4.5%, /* More Lighter Foreground */
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 20%)) 5.2%, 
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%)) 10%, 
+                      hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%)) 12%), 
+                    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+                      hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.1) 12%, 
+                      hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.15) 20%, 
+                      hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.25) 120%);
   background-position: 0 var(--background-y), var(--background-x) var(--background-y), center;
   background-blend-mode: color, hard-light;
   background-size: 500% 500%, 300% 300%, 200% 200%;
@@ -156,7 +239,11 @@
 }
 
 .pc-shine::before {
-  background-image: linear-gradient(45deg, var(--sunpillar-4), var(--sunpillar-5), var(--sunpillar-6), var(--sunpillar-1), var(--sunpillar-2), var(--sunpillar-3)), radial-gradient(circle at var(--pointer-x) var(--pointer-y), hsl(0, 0%, 70%) 0%, hsla(0, 0%, 30%, 0.2) 90%), var(--grain);
+  background-image: linear-gradient(45deg, var(--sunpillar-clr-4), var(--sunpillar-clr-5), var(--sunpillar-clr-6), var(--sunpillar-clr-1), var(--sunpillar-clr-2), var(--sunpillar-clr-3)), 
+                    radial-gradient(circle at var(--pointer-x) var(--pointer-y), 
+                      hsl(var(--theme-secondary-h), var(--theme-secondary-s), calc(var(--theme-secondary-l) - 20%)) 0%, /* Darker Secondary */
+                      hsla(var(--theme-secondary-h), var(--theme-secondary-s), var(--theme-secondary-l), 0.2) 90%), 
+                    var(--grain);
   background-size: 250% 250%, 100% 100%, 220px 220px;
   background-position: var(--pointer-x) var(--pointer-y), center, calc(var(--pointer-x) * 0.01) calc(var(--pointer-y) * 0.01);
   background-blend-mode: color-dodge;
@@ -174,25 +261,27 @@
 .pc-glare {
   transform: translate3d(0, 0, 1.1px);
   overflow: hidden;
-  background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsl(248, 25%, 80%) 12%, hsla(207, 40%, 30%, 0.8) 90%);
+  background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+                      hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 20%)) 12%, /* Lighter Accent */
+                      hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 20%), 0.8) 90%); /* Darker Primary transparent */
   mix-blend-mode: overlay;
   filter: brightness(0.8) contrast(1.2);
   z-index: 4;
 }
 
 .pc-avatar-content {
-  mix-blend-mode: screen;
+  mix-blend-mode: screen; /* Keep screen for light on dark effect for avatar */
   overflow: hidden;
 }
 
 .pc-avatar-content .avatar {
   width: 100%;
-  height: 100%; /* Ensure avatar fills its container */
-  object-fit: cover; /* Cover the area, might crop */
+  height: 100%; 
+  object-fit: cover; 
   position: absolute;
   left: 50%;
   transform: translateX(-50%) scale(1);
-  bottom: 0; /* Adjusted from bottom: 2px */
+  bottom: 0; 
   opacity: calc(1.75 - var(--pointer-from-center));
 }
 
@@ -219,9 +308,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.1);
+  background: hsla(var(--theme-card-h), var(--theme-card-s), var(--theme-card-l), 0.1); /* Card bg with alpha */
   backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsla(var(--theme-border-h, var(--theme-card-h)), var(--theme-border-s, var(--theme-card-s)), calc(var(--theme-border-l, var(--theme-card-l)) - 5%), 0.1); /* Border with alpha */
   border-radius: 15px;
   padding: 12px 14px;
   pointer-events: auto;
@@ -238,7 +327,7 @@
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsla(var(--theme-border-h, var(--theme-card-h)), var(--theme-border-s, var(--theme-card-s)), calc(var(--theme-border-l, var(--theme-card-l)) - 5%), 0.1);
   flex-shrink: 0;
 }
 
@@ -259,32 +348,32 @@
 .pc-handle {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 50%)); /* Lighter foreground */
   line-height: 1;
 }
 
 .pc-status {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 40%)); /* Slightly less light foreground */
   line-height: 1;
 }
 
 .pc-contact-btn {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.3);
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: hsl(var(--theme-primary-foreground));
   cursor: pointer;
   transition: all 0.2s ease;
   backdrop-filter: blur(10px);
-  background-color: rgba(0,0,0,0.2); /* Added slight background for better visibility */
+  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.2); 
 }
 
 .pc-contact-btn:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background-color: rgba(255,255,255,0.1); /* Lighten on hover */
+  border-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.6);
+  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.4);
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }
@@ -296,7 +385,7 @@
   position: relative;
   transform: translate3d(calc(var(--pointer-from-left) * -6px + 3px), calc(var(--pointer-from-top) * -6px + 3px), 0.1px) !important;
   z-index: 5;
-  mix-blend-mode: luminosity;
+  mix-blend-mode: luminosity; /* Keep luminosity for text on complex bg */
 }
 
 .pc-details {
@@ -311,11 +400,9 @@
   font-weight: 600;
   margin: 0;
   font-size: min(5svh, 3em);
-  background-image: linear-gradient(to bottom, #fff, #c4c4f0); /* Adjusted gradient for better readability */
-  background-size: 1em 1.5em; /* Was: background-size: 1em 1.5em; */
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
+  /* Using solid theme color for better readability over complex background */
+  color: hsl(var(--theme-primary-l), calc(var(--theme-primary-s)), calc(var(--theme-primary-l) + 30%)); /* Lighter version of primary, or primary-foreground */
+  text-shadow: 1px 1px 2px hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.3);
 }
 
 .pc-details p {
@@ -326,11 +413,9 @@
   font-size: 16px;
   margin: 0 auto;
   width: min-content;
-  background-image: linear-gradient(to bottom, #f0f0ff, #8a8ae0); /* Adjusted gradient for better readability */
-  background-size: 1em 1.5em; /* Was: background-size: 1em 1.5em; */
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
+  /* Using solid theme color */
+  color: hsl(var(--theme-accent-l), var(--theme-accent-s), calc(var(--theme-accent-l) + 40%)); /* Lighter version of accent, or accent-foreground */
+  text-shadow: 1px 1px 1px hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.2);
 }
 
 @keyframes glow-bg {
@@ -379,8 +464,8 @@
   }
 
   .pc-mini-avatar {
-    width: 36px; /* Increased size slightly */
-    height: 36px; /* Increased size slightly */
+    width: 36px; 
+    height: 36px; 
   }
 
   .pc-user-details {
@@ -392,19 +477,19 @@
   }
 
   .pc-status {
-    font-size: 12px; /* Increased size slightly */
+    font-size: 12px; 
   }
 
   .pc-contact-btn {
     padding: 6px 12px;
-    font-size: 12px; /* Increased size slightly */
+    font-size: 12px; 
   }
 }
 
 @media (max-width: 480px) {
   .pc-card {
     height: 60svh;
-    max-height: 400px; /* Slightly increased max height */
+    max-height: 400px; 
   }
 
   .pc-details {
@@ -425,12 +510,12 @@
     left: 12px;
     right: 12px;
     padding: 8px 10px;
-    border-radius: 12px; /* Slightly less rounded */
+    border-radius: 12px; 
   }
 
   .pc-mini-avatar {
-    width: 32px; /* Increased size slightly */
-    height: 32px; /* Increased size slightly */
+    width: 32px; 
+    height: 32px; 
   }
 
   .pc-user-details {
@@ -442,17 +527,17 @@
   }
 
   .pc-status {
-    font-size: 11px; /* Increased size slightly */
+    font-size: 11px; 
   }
 
   .pc-contact-btn {
     padding: 5px 10px;
-    font-size: 11px; /* Increased size slightly */
-    border-radius: 6px; /* Slightly less rounded */
+    font-size: 11px; 
+    border-radius: 6px; 
   }
 }
 
-@media (max-width: 375px) { /* Added breakpoint for smaller phones */
+@media (max-width: 375px) { 
   .pc-card {
     height: 60svh;
     max-height: 360px;
@@ -464,12 +549,12 @@
     font-size: 11px;
   }
   .pc-user-info {
-    flex-direction: column; /* Stack user info on very small screens */
+    flex-direction: column; 
     align-items: flex-start;
     gap: 8px;
     padding: 10px;
   }
    .pc-contact-btn {
-    align-self: flex-start; /* Align button to start */
+    align-self: flex-start; 
   }
 }
