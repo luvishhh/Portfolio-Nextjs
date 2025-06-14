@@ -13,23 +13,35 @@ export default function HomePage() {
   return (
     <div className="space-y-16 animate-in fade-in-0 duration-500">
       {/* Hero Section */}
-      <section className="text-center py-16 md:py-24 rounded-xl bg-gradient-to-br from-background via-secondary to-background shadow-inner">
-        <div className="container mx-auto px-4">
-          <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 text-primary">
+      <section className="relative text-center py-20 md:py-32 rounded-xl shadow-2xl overflow-hidden
+                          bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20
+                          animate-gradient-shift bg-[length:400%_400%]">
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-sm z-0"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <h1 className="font-headline text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-8
+                         bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary
+                         animate-in fade-in-0 slide-in-from-bottom-12 duration-700 delay-200">
             {content.heroTitle}
           </h1>
-          <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-8">
+          <p className="text-lg md:text-xl text-foreground/90 max-w-3xl mx-auto mb-10
+                       animate-in fade-in-0 slide-in-from-bottom-10 duration-700 delay-400">
             {content.heroSubtitle}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center
+                       animate-in fade-in-0 slide-in-from-bottom-8 duration-700 delay-600">
             <Link href="/projects" passHref>
-              <Button size="lg" className="group bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg">
+              <Button size="lg" className="group bg-primary hover:bg-primary/80 text-primary-foreground 
+                                         transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-primary/50 shadow-xl
+                                         px-10 py-3 text-base sm:text-lg">
                 {content.heroButtonExplore}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
             </Link>
             <Link href="/contact" passHref>
-              <Button size="lg" variant="outline" className="group hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg">
+              <Button size="lg" variant="outline" className="group border-foreground/30 hover:bg-accent hover:text-accent-foreground hover:border-accent
+                                                       transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-accent/40 shadow-xl
+                                                       px-10 py-3 text-base sm:text-lg">
                 {content.heroButtonContact}
               </Button>
             </Link>

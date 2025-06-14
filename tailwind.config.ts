@@ -108,13 +108,18 @@ export default {
         'tilt': { // Added for subtle profile image animation
           '0%, 100%': { transform: 'rotate(-1deg)' },
           '50%': { transform: 'rotate(1deg)' },
-        }
+        },
+        'gradient-shift': {
+          '0%, 100%': { 'background-position': '0% 50%' },
+          '50%': { 'background-position': '100% 50%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
         'tilt': 'tilt 10s infinite linear alternate', // Added tilt animation
+        'gradient-shift': 'gradient-shift 15s ease infinite',
       },
     },
   },
