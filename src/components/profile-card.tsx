@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useCallback, useMemo, ReactNode } from "react
 import "./profile-card.css"; 
 
 interface ProfileCardProps {
-  avatarUrl: string;
+  avatarUrl: string; // Default removed
   iconUrl?: string;
   grainUrl?: string;
   behindGradient?: string;
@@ -13,12 +13,12 @@ interface ProfileCardProps {
   showBehindGradient?: boolean;
   className?: string;
   enableTilt?: boolean;
-  miniAvatarUrl?: string;
-  name?: string;
-  title?: string;
-  handle?: string;
-  status?: string;
-  contactText?: string;
+  miniAvatarUrl?: string; // Default removed (will use avatarUrl if not provided)
+  name?: string; // Default removed
+  title?: string; // Default removed
+  handle?: string; // Default removed
+  status?: string; // Default removed
+  contactText?: string; // Default removed
   showUserInfo?: boolean;
   onContactClick?: () => void;
   "data-ai-hint"?: string; // Added to accept data-ai-hint
@@ -57,22 +57,22 @@ const easeInOutCubic = (x: number): number =>
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   avatarUrl,
-  iconUrl = "https://placehold.co/128x128.png?text=Pattern", 
-  grainUrl = "https://placehold.co/256x256.png?text=Grain", 
+  iconUrl = "https://placehold.co/128x128.png?text=PatternFX", 
+  grainUrl = "https://placehold.co/256x256.png?text=GrainFX", 
   behindGradient,
   innerGradient,
   showBehindGradient = true,
   className = "",
   enableTilt = true,
   miniAvatarUrl,
-  name = "Javi A. Torres",
-  title = "Software Engineer",
-  handle = "javicodes",
-  status = "Online",
-  contactText = "Contact",
+  name,
+  title,
+  handle,
+  status,
+  contactText,
   showUserInfo = true,
   onContactClick,
-  "data-ai-hint": dataAiHint, // Destructure data-ai-hint
+  "data-ai-hint": dataAiHint, 
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -139,16 +139,17 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           rafId = requestAnimationFrame(animationLoop);
         }
       };
-
-      rafId = requestAnimationFrame(animationLoop);
+      if (typeof window !== 'undefined') {
+        rafId = window.requestAnimationFrame(animationLoop);
+      }
     };
 
     return {
       updateCardTransform,
       createSmoothAnimation,
       cancelAnimation: () => {
-        if (rafId) {
-          cancelAnimationFrame(rafId);
+        if (rafId && typeof window !== 'undefined') {
+          window.cancelAnimationFrame(rafId);
           rafId = null;
         }
       },
@@ -210,9 +211,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     const card = cardRef.current;
     const wrap = wrapRef.current;
 
-    if (!card || !wrap) return;
-
-    if (typeof window === "undefined") return;
+    if (!card || !wrap || typeof window === 'undefined') return;
 
 
     const pointerMoveHandler = handlePointerMove as EventListener;
@@ -223,11 +222,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     card.addEventListener("pointermove", pointerMoveHandler);
     card.addEventListener("pointerleave", pointerLeaveHandler);
 
-    const setInitialPosition = () => {
-        if (wrapRef.current && cardRef.current) {
+    // Delay initial animation slightly to ensure dimensions are available
+    const timeoutId = setTimeout(() => {
+        if (wrapRef.current && cardRef.current && animationHandlers) {
             const initialX = wrapRef.current.clientWidth - ANIMATION_CONFIG.INITIAL_X_OFFSET;
             const initialY = ANIMATION_CONFIG.INITIAL_Y_OFFSET;
-
             animationHandlers.updateCardTransform(initialX, initialY, cardRef.current, wrapRef.current);
             animationHandlers.createSmoothAnimation(
               ANIMATION_CONFIG.INITIAL_DURATION,
@@ -237,9 +236,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               wrapRef.current
             );
         }
-    };
-    
-    const timeoutId = setTimeout(setInitialPosition, 100);
+    }, 100);
 
 
     return () => {
@@ -247,7 +244,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       card.removeEventListener("pointerenter", pointerEnterHandler);
       card.removeEventListener("pointermove", pointerMoveHandler);
       card.removeEventListener("pointerleave", pointerLeaveHandler);
-      animationHandlers.cancelAnimation();
+      animationHandlers?.cancelAnimation();
     };
   }, [
     enableTilt,
@@ -279,7 +276,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       ref={wrapRef}
       className={`pc-card-wrapper ${className}`.trim()}
       style={cardStyle}
-      data-ai-hint={dataAiHint} // Pass data-ai-hint to the outermost div
+      data-ai-hint={dataAiHint}
     >
       <section ref={cardRef} className="pc-card">
         <div className="pc-inside">
@@ -293,7 +290,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = 'https://placehold.co/400x400.png?text=Avatar'; 
+                target.src = 'https://placehold.co/400x400.png?text=Avatar+Error'; 
+                target.style.objectFit = 'contain'; // prevent broken icon stretching
               }}
             />
             {showUserInfo && (
@@ -306,13 +304,14 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = avatarUrl || 'https://placehold.co/48x48.png?text=Mini'; 
+                        target.src = avatarUrl || 'https://placehold.co/48x48.png?text=Mini+Err'; 
+                        target.style.objectFit = 'contain';
                       }}
                     />
                   </div>
                   <div className="pc-user-text">
-                    <div className="pc-handle">@{handle}</div>
-                    <div className="pc-status">{status}</div>
+                    <div className="pc-handle">@{handle || "user_handle"}</div>
+                    <div className="pc-status">{status || "User Status"}</div>
                   </div>
                 </div>
                 <button
@@ -322,15 +321,15 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   type="button"
                   aria-label={`Contact ${name || "user"}`}
                 >
-                  {contactText}
+                  {contactText || "Contact"}
                 </button>
               </div>
             )}
           </div>
           <div className="pc-content">
             <div className="pc-details">
-              <h3>{name}</h3>
-              <p>{title}</p>
+              <h3>{name || "User Name"}</h3>
+              <p>{title || "User Title"}</p>
             </div>
           </div>
         </div>

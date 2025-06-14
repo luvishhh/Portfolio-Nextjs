@@ -2,17 +2,16 @@
 // @/app/about/page.tsx
 "use client"; 
 
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'; // Metadata type can still be used if needed for client-side updates, though usually for server
 import { UserCircle, Sparkles, History, Database, Cpu, Code } from 'lucide-react';
 import ExperienceTimeline from '@/components/experience-timeline';
-// import { getExperience } from '@/lib/experience'; // No longer used directly
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAboutPageContent } from '@/lib/page-content';
 import ProfileCard from '@/components/profile-card'; 
 import '@/components/profile-card.css'; 
-
+import { useEffect, useState } from 'react'; // Added useState and useEffect for client-side content fetching
 
 const skills = [
   { name: "Quantum UI/UX Design", icon: Cpu, level: "Expert" },
@@ -22,11 +21,26 @@ const skills = [
   { name: "Temporal Mechanics (Theoretical)", icon: History, level: "Novice" },
 ];
 
+// export const metadata: Metadata = { // Metadata generation usually done on server, removed for client component
+//   title: 'About Muse - Musefolio',
+//   description: 'Learn more about the creator and vision behind Musefolio.',
+// };
+
 export default function AboutPage() {
-  const content = getAboutPageContent();
-  const experienceItems: ExperienceItem[] = content.experienceItems || []; // Get experience from page content
+  // Fetch content client-side since ProfileCard uses client hooks
+  // and content might update after initial load via admin panel
+  const [content, setContent] = useState(getAboutPageContent());
+  
+  // If you want to ensure fresh content on navigation without full reload,
+  // you might need more complex state management or re-fetch triggers.
+  // For now, getAboutPageContent() fetches the current state from the module.
+  useEffect(() => {
+     setContent(getAboutPageContent());
+  }, []);
+
 
   const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png";
+  const experienceItems: ExperienceItem[] = content.experienceItems || [];
 
 
   return (
@@ -51,7 +65,7 @@ export default function AboutPage() {
                 title={content.profileCardTitle}
                 handle={content.profileCardHandle}
                 status={content.profileCardStatus}
-                iconUrl="https://placehold.co/200x200.png?text=Pattern" 
+                iconUrl="https://placehold.co/200x200.png?text=PatternFX" 
                 grainUrl="https://placehold.co/300x300.png?text=GrainFX" 
                 enableTilt={true}
                 showUserInfo={true}
@@ -66,7 +80,7 @@ export default function AboutPage() {
               />
             </div>
             <div className="lg:col-span-3 space-y-5 animate-in fade-in-0 slide-in-from-right-20 duration-700 delay-400">
-              <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name}</span></h2>
+              <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name.split(" ")[0]}</span></h2> {/* Displaying first part of name for brevity in greeting */}
               <p className="text-md sm:text-lg text-foreground/80 leading-relaxed">
                 {content.introduction}
               </p>

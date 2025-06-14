@@ -1,3 +1,4 @@
+
 // @/app/admin/actions.ts
 "use server";
 
@@ -53,9 +54,9 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[]>; // Adjusted for file and other types
+  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[]>; 
   success: boolean;
-  projectId?: string; // For project actions
+  projectId?: string; 
 };
 
 export async function handleAddProject(prevState: FormState, data: FormData): Promise<FormState> {
@@ -123,10 +124,14 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
       updatedImageArray = [...imageUrls];
     } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) { 
        if(existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0)) {
-         updatedImageArray.push(existingProject.images[0]);
+         // If imageUrls is explicitly empty, and no new main image, keep existing first image IF one exists.
+         // This logic can be tricky: if user CLEARS imageUrls and doesn't upload new main image,
+         // this effectively means "use old main image and no additional images".
+         // If user wants to remove ALL images, they'd clear imageUrls and could potentially need to clear mainImageFile (or we need a "remove image" button).
+         // For now, this retains the first existing image if others are cleared and no new main is uploaded.
+         updatedImageArray.push(existingProject.images[0]); 
        }
-    }
-     else { 
+    } else { // No new main image, no new additional image URLs, retain existing images
       updatedImageArray = [...existingProject.images];
     }
   }
@@ -167,7 +172,6 @@ export async function handleDeleteProject(id: string): Promise<{success: boolean
   }
 }
 
-// Schema for Home Page Content
 const homePageContentSchema = z.object({
   heroTitle: z.string().min(5, "Hero title must be at least 5 characters."),
   heroSubtitle: z.string().min(10, "Hero subtitle must be at least 10 characters."),
@@ -180,7 +184,6 @@ const homePageContentSchema = z.object({
   aiAssistantButton: z.string().min(3, "AI assistant button text is too short."),
 });
 
-// Action to update Home Page Content
 export async function handleUpdateHomePageContent(prevState: FormState, data: FormData): Promise<FormState> {
   const formData = Object.fromEntries(data);
   const parsed = homePageContentSchema.safeParse(formData);
@@ -199,17 +202,16 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
     revalidatePath('/'); 
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
-    return { message: "Home page content updated successfully!", success: true };
+    return { message: "Home page content updated successfully!", success: true, fields: parsed.data as any };
   } catch (error) {
     let message = "Failed to update home page content.";
     if (error instanceof Error) {
         message = error.message;
     }
-    return { message, success: false };
+    return { message, success: false, fields: formData as any };
   }
 }
 
-// Schema for Individual Experience Item
 const experienceItemSchema = z.object({
   id: z.string().min(1, "Experience item ID is required."),
   title: z.string().min(3, "Experience title is too short."),
@@ -219,17 +221,16 @@ const experienceItemSchema = z.object({
   iconName: z.string().optional().describe("Lucide icon name (e.g., Zap, Briefcase)"),
 });
 
-// About Page Content Schema
 const aboutPageContentSchema = z.object({
   mainTitle: z.string().min(3, "Main title is too short."),
   mainSubtitle: z.string().min(10, "Main subtitle is too short."),
   greeting: z.string().min(5, "Greeting is too short."),
-  name: z.string().min(3, "Name is too short."),
+  name: z.string().min(2, "Name is too short."), // Min 2 for names like "Al"
   introduction: z.string().min(20, "Introduction is too short."),
   philosophy: z.string().min(20, "Philosophy is too short."),
   futureFocus: z.string().min(20, "Future focus is too short."),
-  profileImageFile: fileSchema,
-  dataAiHint: z.string().optional(),
+  profileImageFile: fileSchema, // For new uploads
+  dataAiHint: z.string().optional(), // For profile image
   profileCardTitle: z.string().min(3, "Profile card title is too short."),
   profileCardHandle: z.string().min(3, "Profile card handle is too short."),
   profileCardStatus: z.string().min(3, "Profile card status is too short."),
@@ -239,7 +240,7 @@ const aboutPageContentSchema = z.object({
   chroniclesTitle: z.string().min(5, "Chronicles title is too short."),
   chroniclesSubtitle: z.string().min(10, "Chronicles subtitle is too short."),
   experienceItemsJSON: z.string().transform((str, ctx) => {
-    if (!str.trim()) { // Allow empty string to represent no items
+    if (!str.trim()) { 
       return [];
     }
     try {
@@ -260,7 +261,7 @@ const aboutPageContentSchema = z.object({
       });
       return z.NEVER;
     }
-  }).optional().default("[]"), // Default to empty array if not provided
+  }).optional().default("[]"), 
 });
 
 export async function handleUpdateAboutPageContent(prevState: FormState, data: FormData): Promise<FormState> {
@@ -271,7 +272,7 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     return { 
       message: "Invalid about page data.", 
       issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`), 
-      fields: formData as any, // Keep raw form data for re-population
+      fields: formData as any, 
       success: false 
     };
   }
@@ -279,23 +280,29 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     const currentContent = getAboutPageContent(); 
     let newProfileImageUrl = currentContent.profileImage; 
 
+    // Handle profile image upload
     if (parsed.data.profileImageFile && parsed.data.profileImageFile.size > 0) {
-      newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL;
+      // Simulate file upload by using a placeholder URL
+      // In a real app, this would involve uploading to a storage service (e.g., Firebase Storage)
+      // and getting the public URL.
+      newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL; // Use the defined placeholder
     }
     
+    // Destructure to separate file from other data
     const { profileImageFile, experienceItemsJSON, ...restOfData } = parsed.data;
     
     const contentToUpdate: AboutPageContent = {
-      ...currentContent, 
-      ...restOfData,     
-      profileImage: newProfileImageUrl,
-      experienceItems: experienceItemsJSON, // Already parsed and validated to ExperienceItem[]
+      ...currentContent, // Start with existing content to preserve fields not in form
+      ...restOfData,      // Override with new data from form
+      profileImage: newProfileImageUrl, // Set the (potentially new) profile image URL
+      experienceItems: experienceItemsJSON, // This is already parsed to ExperienceItem[]
     };
 
     updateAboutPageContent(contentToUpdate);
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
+    // Return all fields, including the potentially updated profileImage and parsed experienceItems
     return { message: "About page content updated successfully!", success: true, fields: contentToUpdate as any };
   } catch (error) {
     let message = "Failed to update about page content.";
@@ -306,7 +313,6 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
   }
 }
 
-// Contact Page Content Schema
 const contactPageContentSchema = z.object({
   title: z.string().min(5, "Title is too short."),
   description: z.string().min(10, "Description is too short."),
@@ -331,12 +337,12 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     revalidatePath('/contact');
     revalidatePath('/admin/edit-contact');
     revalidatePath('/admin');
-    return { message: "Contact page content updated successfully!", success: true };
+    return { message: "Contact page content updated successfully!", success: true, fields: parsed.data as any };
   } catch (error) {
     let message = "Failed to update contact page content.";
     if (error instanceof Error) {
         message = error.message;
     }
-    return { message, success: false };
+    return { message, success: false, fields: formData as any };
   }
 }

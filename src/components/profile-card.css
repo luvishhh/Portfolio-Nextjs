@@ -1,35 +1,34 @@
 
 :root {
   /* Theme HSL Components (derived from globals.css for use here) */
-  /* Example: --primary: 46 31% 56%; */
-  --theme-primary-h: 46;
+  --theme-primary-h: 46;    /* From #B3A369 */
   --theme-primary-s: 31%;
   --theme-primary-l: 56%;
 
-  /* Example: --accent: 73 16% 50%; */
-  --theme-accent-h: 73;
+  --theme-accent-h: 73;     /* From #8F946B */
   --theme-accent-s: 16%;
   --theme-accent-l: 50%;
 
-  /* Example: --secondary: 50 15% 88%; */
-  --theme-secondary-h: 50;
-  --theme-secondary-s: 15%;
-  --theme-secondary-l: 88%;
-
-  /* Example: --foreground: 220 15% 25%; */
-  --theme-foreground-h: 220;
+  --theme-secondary-h: 50;  /* From #F2F1EB (very light, so secondary is desaturated yellow-gray) */
+  --theme-secondary-s: 15%; /* globals.css uses 27% for background, 15% for secondary */
+  --theme-secondary-l: 88%; /* globals.css uses 94% for background, 88% for secondary */
+  
+  --theme-foreground-h: 220; /* From globals.css */
   --theme-foreground-s: 15%;
   --theme-foreground-l: 25%;
   
-  /* Example: --background: 50 27% 94%; */
-  --theme-background-h: 50;
+  --theme-background-h: 50;  /* From #F2F1EB */
   --theme-background-s: 27%;
   --theme-background-l: 94%;
 
-  /* Example: --card: 50 27% 97%; */
-  --theme-card-h: 50;
+  --theme-card-h: 50;        /* From globals.css (slightly lighter than background) */
   --theme-card-s: 27%;
   --theme-card-l: 97%;
+  
+  --theme-border-h: 50;      /* From globals.css */
+  --theme-border-s: 20%;
+  --theme-border-l: 85%;
+
 
   /* ProfileCard specific vars */
   --pointer-x: 50%;
@@ -65,29 +64,27 @@
 
   --card-main-bg-radial-1: radial-gradient(
     farthest-side circle at var(--pointer-x) var(--pointer-y),
-    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 20%), var(--card-opacity)) 4%, /* Lighter Primary transparent */
-    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), calc(var(--card-opacity) * 0.75)) 10%,
-    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), calc(var(--card-opacity) * 0.5)) 50%,
+    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 15%), calc(var(--card-opacity) * 0.8)) 4%, /* Lighter Primary transparent */
+    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), calc(var(--card-opacity) * 0.6)) 10%,
+    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), calc(var(--card-opacity) * 0.4)) 50%,
     hsla(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) - 10%), 0) 100% /* Darker Accent transparent */
   );
   --card-main-bg-radial-2: radial-gradient(
     35% 52% at 55% 20%,
-    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), 0.77) 0%, /* Accent transparent */
+    hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), 0.5) 0%, /* Accent transparent */
     hsla(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l), 0) 100%
   );
   --card-main-bg-radial-3: radial-gradient(
     100% 100% at 50% 50%,
-    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.8) 1%, /* Primary transparent */
+    hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.6) 1%, /* Primary transparent */
     hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0) 76%
   );
   
-  /* Default behind-gradient will be set by JS if prop not provided, this is a fallback for the CSS var structure */
   --behind-gradient: var(--card-main-bg-radial-1), var(--card-main-bg-radial-2), var(--card-main-bg-radial-3), var(--behind-gradient-base);
 
-  /* Default inner-gradient will be set by JS if prop not provided */
   --inner-gradient: linear-gradient(145deg, 
-    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 15%), 0.55) 0%, /* Darker Primary transparent */
-    hsla(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 5%), 0.27) 100% /* Lighter Accent transparent */
+    hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 15%), 0.45) 0%, 
+    hsla(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 5%), 0.17) 100% 
   );
 }
 
@@ -135,7 +132,7 @@
   position: relative;
   background-blend-mode: color-dodge, normal, normal, normal;
   animation: glow-bg 12s linear infinite;
-  box-shadow: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%), 0.8) /* Darker foreground for shadow */
+  box-shadow: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 10%), 0.6) /* Darker foreground for shadow */
               calc((var(--pointer-from-left) * 10px) - 3px) 
               calc((var(--pointer-from-top) * 20px) - 6px) 20px -5px;
   transition: transform 1s ease;
@@ -164,7 +161,8 @@
   inset: 1px;
   position: absolute;
   background-image: var(--inner-gradient);
-  background-color: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 10%), 0.9); /* Darker foreground as base */
+  /* Base background for inside, using a very dark desaturated version of foreground or primary */
+  background-color: hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 15%), 0.85); 
   transform: translate3d(0, 0, 0.01px);
 }
 
@@ -241,8 +239,8 @@
 .pc-shine::before {
   background-image: linear-gradient(45deg, var(--sunpillar-clr-4), var(--sunpillar-clr-5), var(--sunpillar-clr-6), var(--sunpillar-clr-1), var(--sunpillar-clr-2), var(--sunpillar-clr-3)), 
                     radial-gradient(circle at var(--pointer-x) var(--pointer-y), 
-                      hsl(var(--theme-secondary-h), var(--theme-secondary-s), calc(var(--theme-secondary-l) - 20%)) 0%, /* Darker Secondary */
-                      hsla(var(--theme-secondary-h), var(--theme-secondary-s), var(--theme-secondary-l), 0.2) 90%), 
+                      hsl(var(--theme-secondary-h), var(--theme-secondary-s), calc(var(--theme-secondary-l) - 30%)) 0%, /* Darker Secondary for contrast */
+                      hsla(var(--theme-secondary-h), var(--theme-secondary-s), var(--theme-secondary-l), 0.1) 90%), 
                     var(--grain);
   background-size: 250% 250%, 100% 100%, 220px 220px;
   background-position: var(--pointer-x) var(--pointer-y), center, calc(var(--pointer-x) * 0.01) calc(var(--pointer-y) * 0.01);
@@ -262,15 +260,15 @@
   transform: translate3d(0, 0, 1.1px);
   overflow: hidden;
   background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), 
-                      hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 20%)) 12%, /* Lighter Accent */
-                      hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 20%), 0.8) 90%); /* Darker Primary transparent */
+                      hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 25%)) 12%, /* Lighter Accent for glare */
+                      hsla(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 15%), 0.7) 90%); /* Darker Primary transparent for glare */
   mix-blend-mode: overlay;
-  filter: brightness(0.8) contrast(1.2);
+  filter: brightness(0.9) contrast(1.1);
   z-index: 4;
 }
 
 .pc-avatar-content {
-  mix-blend-mode: screen; /* Keep screen for light on dark effect for avatar */
+  mix-blend-mode: screen; 
   overflow: hidden;
 }
 
@@ -308,9 +306,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: hsla(var(--theme-card-h), var(--theme-card-s), var(--theme-card-l), 0.1); /* Card bg with alpha */
-  backdrop-filter: blur(30px);
-  border: 1px solid hsla(var(--theme-border-h, var(--theme-card-h)), var(--theme-border-s, var(--theme-card-s)), calc(var(--theme-border-l, var(--theme-card-l)) - 5%), 0.1); /* Border with alpha */
+  background: hsla(var(--theme-card-h), var(--theme-card-s), var(--theme-card-l), 0.05); /* Card bg with low alpha */
+  backdrop-filter: blur(20px); /* Reduced blur for potentially better perf / subtlety */
+  border: 1px solid hsla(var(--theme-border-h), var(--theme-border-s), calc(var(--theme-border-l) - 10%), 0.15); /* Border with low alpha, slightly darker */
   border-radius: 15px;
   padding: 12px 14px;
   pointer-events: auto;
@@ -327,7 +325,7 @@
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid hsla(var(--theme-border-h, var(--theme-card-h)), var(--theme-border-s, var(--theme-card-s)), calc(var(--theme-border-l, var(--theme-card-l)) - 5%), 0.1);
+  border: 1px solid hsla(var(--theme-border-h), var(--theme-border-s), calc(var(--theme-border-l) - 10%), 0.1);
   flex-shrink: 0;
 }
 
@@ -348,34 +346,35 @@
 .pc-handle {
   font-size: 14px;
   font-weight: 500;
-  color: hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 50%)); /* Lighter foreground */
+  /* Text color that contrasts with the themed backdrop */
+  color: hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 30%)); /* Lighter primary */
   line-height: 1;
 }
 
 .pc-status {
   font-size: 14px;
-  color: hsl(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) + 40%)); /* Slightly less light foreground */
+  color: hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 30%)); /* Lighter accent */
   line-height: 1;
 }
 
 .pc-contact-btn {
-  border: 1px solid hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.3);
+  border: 1px solid hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.4);
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: hsl(var(--theme-primary-foreground));
+  color: hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 20%)); /* Lighter primary for text */
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.2); 
+  backdrop-filter: blur(5px);
+  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.15); 
 }
 
 .pc-contact-btn:hover {
-  border-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.6);
-  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.4);
+  border-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.7);
+  background-color: hsla(var(--theme-primary-h), var(--theme-primary-s), var(--theme-primary-l), 0.3);
+  color: hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 35%));
   transform: translateY(-1px);
-  transition: all 0.2s ease;
 }
 
 .pc-content {
@@ -385,7 +384,7 @@
   position: relative;
   transform: translate3d(calc(var(--pointer-from-left) * -6px + 3px), calc(var(--pointer-from-top) * -6px + 3px), 0.1px) !important;
   z-index: 5;
-  mix-blend-mode: luminosity; /* Keep luminosity for text on complex bg */
+  mix-blend-mode: luminosity; 
 }
 
 .pc-details {
@@ -400,9 +399,16 @@
   font-weight: 600;
   margin: 0;
   font-size: min(5svh, 3em);
-  /* Using solid theme color for better readability over complex background */
-  color: hsl(var(--theme-primary-l), calc(var(--theme-primary-s)), calc(var(--theme-primary-l) + 30%)); /* Lighter version of primary, or primary-foreground */
-  text-shadow: 1px 1px 2px hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.3);
+  /* Gradient text using theme primary and a lighter variant */
+  background-image: linear-gradient(to bottom, 
+    hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) + 25%)), /* Lighter primary */
+    hsl(var(--theme-primary-h), var(--theme-primary-s), calc(var(--theme-primary-l) - 5%))  /* Slightly darker/richer primary */
+  );
+  background-size: 1em 1.5em;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 1px 1px 3px hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 10%), 0.2);
 }
 
 .pc-details p {
@@ -413,9 +419,16 @@
   font-size: 16px;
   margin: 0 auto;
   width: min-content;
-  /* Using solid theme color */
-  color: hsl(var(--theme-accent-l), var(--theme-accent-s), calc(var(--theme-accent-l) + 40%)); /* Lighter version of accent, or accent-foreground */
-  text-shadow: 1px 1px 1px hsla(var(--theme-foreground-h), var(--theme-foreground-s), var(--theme-foreground-l), 0.2);
+  /* Gradient text using theme accent and a lighter variant */
+  background-image: linear-gradient(to bottom, 
+    hsl(var(--theme-accent-h), var(--theme-accent-s), calc(var(--theme-accent-l) + 30%)), /* Lighter accent */
+    hsl(var(--theme-accent-h), var(--theme-accent-s), var(--theme-accent-l)) /* Normal accent */
+  );
+  background-size: 1em 1.5em;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 1px 1px 2px hsla(var(--theme-foreground-h), var(--theme-foreground-s), calc(var(--theme-foreground-l) - 5%), 0.15);
 }
 
 @keyframes glow-bg {

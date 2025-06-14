@@ -1,3 +1,4 @@
+
 // @/components/admin/about-content-form.tsx
 "use client";
 
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import type { AboutPageContent } from "@/types/page-content";
 import type { FormState } from "@/app/admin/actions";
 import { AlertCircle, Loader2, FileImage, Info } from "lucide-react";
-import type { ExperienceItem } from "@/types/experience";
 
 interface AboutContentFormProps {
   formAction: (payload: FormData) => void;
@@ -30,37 +30,43 @@ function SubmitButton({ text }: { text: string }) {
 
 export default function AboutContentForm({ formAction, initialState, content, buttonText = "Save Changes" }: AboutContentFormProps) {
   
+  // Use `initialState.fields` if available (after a submission), otherwise use `content` (for initial load)
+  const currentFieldValues = initialState?.fields ? initialState.fields as unknown as AboutPageContent : content;
+
+
   const fields = [
     // General Info
-    { id: "mainTitle", label: "Main Title (e.g., 'Codename: Muse')", type: "text", defaultValue: content.mainTitle, required: true },
-    { id: "mainSubtitle", label: "Main Subtitle (e.g., 'Architect of Digital Realities...')", type: "text", defaultValue: content.mainSubtitle, required: true },
-    { id: "greeting", label: "Greeting Text", type: "text", defaultValue: content.greeting, required: true },
-    { id: "name", label: "Your Name/Alias (Used in intro and Profile Card)", type: "text", defaultValue: content.name, required: true },
-    { id: "introduction", label: "Introduction Paragraph", type: "textarea", defaultValue: content.introduction, required: true, rows: 4 },
-    { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: content.philosophy, required: true, rows: 3 },
-    { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: content.futureFocus, required: true, rows: 3 },
+    { id: "mainTitle", label: "Main Title (e.g., 'Codename: Muse')", type: "text", defaultValue: currentFieldValues.mainTitle, required: true },
+    { id: "mainSubtitle", label: "Main Subtitle (e.g., 'Architect of Digital Realities...')", type: "text", defaultValue: currentFieldValues.mainSubtitle, required: true },
+    { id: "greeting", label: "Greeting Text", type: "text", defaultValue: currentFieldValues.greeting, required: true },
+    { id: "name", label: "Your Name/Alias (Used in intro and Profile Card)", type: "text", defaultValue: currentFieldValues.name, required: true },
+    { id: "introduction", label: "Introduction Paragraph", type: "textarea", defaultValue: currentFieldValues.introduction, required: true, rows: 4 },
+    { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: currentFieldValues.philosophy, required: true, rows: 3 },
+    { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: currentFieldValues.futureFocus, required: true, rows: 3 },
     // Profile Image
-    { id: "profileImageFile", label: "Profile Image Upload", type: "file", required: !content.profileImage },
-    { id: "dataAiHint", label: "Profile Image AI Hint", type: "text", defaultValue: content.dataAiHint, placeholder: "e.g. futuristic avatar" },
+    { id: "profileImageFile", label: "Profile Image Upload (Replaces current if new file selected)", type: "file", required: false }, // Not strictly required if an image already exists
+    { id: "dataAiHint", label: "Profile Image AI Hint (Max 2 words)", type: "text", defaultValue: currentFieldValues.dataAiHint, placeholder: "e.g. futuristic avatar" },
     // Profile Card Specific Text
-    { id: "profileCardTitle", label: "Profile Card - Title (e.g., 'Digital Artisan')", type: "text", defaultValue: content.profileCardTitle, required: true },
-    { id: "profileCardHandle", label: "Profile Card - Handle (e.g., '@Muse_AI')", type: "text", defaultValue: content.profileCardHandle, required: true },
-    { id: "profileCardStatus", label: "Profile Card - Status (e.g., 'Online')", type: "text", defaultValue: content.profileCardStatus, required: true },
-    { id: "profileCardContactText", label: "Profile Card - Contact Button Text", type: "text", defaultValue: content.profileCardContactText, required: true },
+    { id: "profileCardTitle", label: "Profile Card - Title (e.g., 'Digital Artisan')", type: "text", defaultValue: currentFieldValues.profileCardTitle, required: true },
+    { id: "profileCardHandle", label: "Profile Card - Handle (e.g., '@Muse_AI')", type: "text", defaultValue: currentFieldValues.profileCardHandle, required: true },
+    { id: "profileCardStatus", label: "Profile Card - Status (e.g., 'Online')", type: "text", defaultValue: currentFieldValues.profileCardStatus, required: true },
+    { id: "profileCardContactText", label: "Profile Card - Contact Button Text", type: "text", defaultValue: currentFieldValues.profileCardContactText, required: true },
     // Sections Titles
-    { id: "coreCompetenciesTitle", label: "Core Competencies Section Title", type: "text", defaultValue: content.coreCompetenciesTitle, required: true },
-    { id: "coreCompetenciesSubtitle", label: "Core Competencies Section Subtitle", type: "text", defaultValue: content.coreCompetenciesSubtitle, required: true },
-    { id: "chroniclesTitle", label: "Chronicles (Experience) Section Title", type: "text", defaultValue: content.chroniclesTitle, required: true },
-    { id: "chroniclesSubtitle", label: "Chronicles (Experience) Section Subtitle", type: "text", defaultValue: content.chroniclesSubtitle, required: true },
+    { id: "coreCompetenciesTitle", label: "Core Competencies Section Title", type: "text", defaultValue: currentFieldValues.coreCompetenciesTitle, required: true },
+    { id: "coreCompetenciesSubtitle", label: "Core Competencies Section Subtitle", type: "text", defaultValue: currentFieldValues.coreCompetenciesSubtitle, required: true },
+    { id: "chroniclesTitle", label: "Chronicles (Experience) Section Title", type: "text", defaultValue: currentFieldValues.chroniclesTitle, required: true },
+    { id: "chroniclesSubtitle", label: "Chronicles (Experience) Section Subtitle", type: "text", defaultValue: currentFieldValues.chroniclesSubtitle, required: true },
     // Experience Items (JSON)
     { 
       id: "experienceItemsJSON", 
       label: "Experience Timeline Items (JSON format)", 
       type: "textarea", 
-      defaultValue: JSON.stringify(content.experienceItems || [], null, 2), 
+      // Ensure experienceItems is stringified from currentFieldValues or default to empty array string
+      defaultValue: JSON.stringify(currentFieldValues.experienceItems || [], null, 2), 
       required: false, 
-      rows: 10,
-      description: "Enter an array of experience items. Each item should be an object with: id (string), title (string), company (string), period (string), description (string), iconName (string, optional, e.g., 'Zap'). Ensure valid JSON."
+      rows: 12, // Increased rows
+      description: "Enter an array of experience items. Each item should be an object. Example: [{\"id\": \"1\", \"title\": \"Lead Designer\", \"company\": \"Tech Corp\", \"period\": \"2020 - Present\", \"description\": \"Led design team.\", \"iconName\": \"Zap\"}]. Ensure valid JSON. Icon names are from lucide-react (e.g., Zap, Briefcase, Code, Lightbulb, BrainCircuit, Building).",
+      className: "font-mono text-sm"
     },
   ];
 
@@ -79,36 +85,38 @@ export default function AboutContentForm({ formAction, initialState, content, bu
             <Textarea
               id={field.id}
               name={field.id}
-              defaultValue={initialState.fields?.[field.id] as string ?? field.defaultValue as string}
+              defaultValue={field.defaultValue as string} // Use resolved default value
               required={field.required}
               rows={(field.rows as number) || 3}
-              className="mt-1 font-mono text-sm"
+              className={`mt-1 ${field.className || ''}`}
               placeholder={field.placeholder}
             />
           ) : field.type === "file" ? (
-            <div className="mt-1 flex items-center space-x-2">
-               <FileImage className="h-5 w-5 text-muted-foreground" />
-              <Input
-                id={field.id}
-                name={field.id}
-                type="file"
-                accept="image/*"
-                className="mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-              />
+            <div className="mt-1">
+              <div className="flex items-center space-x-2">
+                <FileImage className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id={field.id}
+                  name={field.id}
+                  type="file"
+                  accept="image/*"
+                  className="mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+              </div>
+              {field.id === "profileImageFile" && currentFieldValues.profileImage && (
+                <p className="text-xs text-muted-foreground mt-1">Current profile image: <a href={currentFieldValues.profileImage} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{currentFieldValues.profileImage.substring(0,50)}...</a></p>
+              )}
             </div>
           ) : (
             <Input
               id={field.id}
               name={field.id}
               type={field.type}
-              defaultValue={initialState.fields?.[field.id] as string ?? field.defaultValue as string}
+              defaultValue={field.defaultValue as string | number} // Use resolved default value
               required={field.required}
-              className="mt-1"
+              className={`mt-1 ${field.className || ''}`}
               placeholder={field.placeholder}
             />
-          )}
-          {field.id === "profileImageFile" && content.profileImage && (
-            <p className="text-xs text-muted-foreground mt-1">Current profile image: <a href={content.profileImage} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{content.profileImage.substring(0,50)}...</a>. Uploading a new file will replace it.</p>
           )}
         </div>
       ))}
