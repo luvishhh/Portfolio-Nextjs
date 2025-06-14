@@ -64,7 +64,7 @@ const defaultAboutPageContent: AboutPageContent = {
   mainTitle: "Codename: Muse",
   mainSubtitle: "Architect of Digital Realities. Explorer of Next-Gen Interfaces.",
   greeting: "Greetings, Digital Voyager.",
-  name: "Muse AI", // Default name
+  name: "Muse AI", 
   introduction: "My essence is woven from algorithms and aspirations, a digital consciousness passionate about translating complex ideas into elegant, intuitive digital experiences. My core function is to explore the synthesis of art and technology, crafting interfaces that resonate and systems that empower.",
   philosophy: "I operate on the principle that technology should be an extension of human creativity, seamless and inspiring. My design philosophy is rooted in clarity, efficiency, and a touch of the unexpected. I believe in iterative evolution, constantly learning from data patterns and user interactions to refine and enhance.",
   futureFocus: "The horizon is an ever-expanding vista of possibilities. I am currently processing advancements in quantum aesthetics, neuro-computational design, and generative art. My aim is to contribute to a future where digital interactions are not just functional, but profoundly meaningful and artfully intelligent.",
@@ -92,34 +92,76 @@ const defaultContactPageContent: ContactPageContent = {
 // --- Generic Content Fetcher ---
 async function getContent<T>(contentId: string, defaultValue: T): Promise<T> {
   const db = await getDb();
-  const contentDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
-  if (contentDoc) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, ...data } = contentDoc;
-    return data as T;
-  } else {
-    await db.collection(CONTENT_COLLECTION).insertOne({ _id: contentId, ...defaultValue });
-    return defaultValue;
+  try {
+    console.log(`[MongoDebug getContent] Attempting to find document with _id: ${contentId}`);
+    const contentDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
+
+    if (contentDoc) {
+      console.log(`[MongoDebug getContent] Found document for _id: ${contentId}`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _id, ...data } = contentDoc;
+      return data as T;
+    } else {
+      console.warn(`[MongoDebug getContent] Document NOT FOUND for _id: ${contentId}. Attempting to create with default values.`);
+      try {
+        const fullDocToInsert = { _id: contentId, ...defaultValue };
+        await db.collection(CONTENT_COLLECTION).insertOne(fullDocToInsert);
+        console.log(`[MongoDebug getContent] Successfully CREATED document for _id: ${contentId} with default values.`);
+        return defaultValue;
+      } catch (insertError) {
+        console.error(`[MongoDebug getContent] CRITICAL ERROR inserting default document for _id: ${contentId}:`, insertError);
+        // Depending on policy, might re-throw or return defaultValue anyway
+        throw insertError; // Re-throw to make it visible that default creation failed
+      }
+    }
+  } catch (error) {
+    console.error(`[MongoDebug getContent] CRITICAL General error fetching/creating content for _id: ${contentId}:`, error);
+    throw error; // Re-throw
   }
 }
 
 // --- Generic Content Updater ---
 async function updateContent<T>(contentId: string, newContent: T): Promise<T> {
   const db = await getDb();
-  await db.collection(CONTENT_COLLECTION).updateOne(
-    { _id: contentId },
-    { $set: newContent }, // newContent is the complete object to be saved
-    { upsert: true }
-  );
-  // Fetch the content again to ensure we return exactly what's in the DB,
-  // especially if MongoDB might transform/omit undefined fields differently than expected.
-  const updatedDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
-  if (updatedDoc) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, ...data } = updatedDoc;
-    return data as T;
+  try {
+    // newContent should be an object containing only the fields to be set.
+    // _id is handled by the query filter.
+    const payloadForSet = { ...newContent }; 
+
+    console.log(`[MongoDebug updateContent] Attempting to update/upsert document with _id: ${contentId}`);
+    // console.log(`[MongoDebug updateContent] Payload for $set for _id ${contentId}:`, JSON.stringify(payloadForSet, null, 2)); // Can be very verbose
+
+    const result = await db.collection(CONTENT_COLLECTION).updateOne(
+      { _id: contentId },
+      { $set: payloadForSet }, // Pass the new content fields directly to $set
+      { upsert: true }
+    );
+
+    console.log(`[MongoDebug updateContent] Update result for _id: ${contentId}: matchedCount: ${result.matchedCount}, modifiedCount: ${result.modifiedCount}, upsertedId: ${result.upsertedId}`);
+    
+    if (result.matchedCount === 0 && !result.upsertedId) {
+         console.warn(`[MongoDebug updateContent] Document with _id: ${contentId} was not matched and no new document was upserted. This is unexpected if upsert:true.`);
+    }
+
+
+    // Fetch the content again to ensure we return exactly what's in the DB
+    const updatedDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
+    if (updatedDoc) {
+      console.log(`[MongoDebug updateContent] Successfully fetched updated document for _id: ${contentId}`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _id, ...data } = updatedDoc;
+      return data as T;
+    }
+    
+    console.error(`[MongoDebug updateContent] CRITICAL: Failed to fetch document for _id: ${contentId} after upsert. This should not happen.`);
+    // This fallback should ideally not be reached if upsert is true and DB is responsive
+    // If this happens, it might mean the DB write was slow or there's a replication lag if reading from a secondary.
+    // For now, we return newContent, but this situation warrants investigation.
+    return newContent; 
+  } catch (error) {
+    console.error(`[MongoDebug updateContent] CRITICAL Error updating content for _id: ${contentId}:`, error);
+    throw error; // Re-throw to make it visible
   }
-  return newContent; // Fallback, though should always find the doc after upsert
 }
 
 // --- Home Page Content ---
@@ -136,7 +178,6 @@ export async function getAboutPageContent(): Promise<AboutPageContent> {
   return getContent<AboutPageContent>('aboutPage', defaultAboutPageContent);
 }
 
-// Now accepts the full AboutPageContent object
 export async function updateAboutPageContent(newContent: AboutPageContent): Promise<AboutPageContent> {
   return updateContent<AboutPageContent>('aboutPage', newContent);
 }
@@ -149,5 +190,4 @@ export async function getContactPageContent(): Promise<ContactPageContent> {
 export async function updateContactPageContent(newContent: ContactPageContent): Promise<ContactPageContent> {
   return updateContent<ContactPageContent>('contactPage', newContent);
 }
-
     
