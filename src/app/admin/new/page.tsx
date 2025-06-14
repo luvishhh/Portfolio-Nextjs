@@ -1,7 +1,7 @@
 // @/app/admin/new/page.tsx
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function NewProjectPage() {
   const initialState: FormState = { message: "", success: false };
-  const [state, formAction] = useFormState(handleAddProject, initialState);
+  const [state, formAction] = useActionState(handleAddProject, initialState); // Changed from useFormState
   const { toast } = useToast();
   const router = useRouter();
 
@@ -60,4 +60,3 @@ export default function NewProjectPage() {
     </div>
   );
 }
-

@@ -1,13 +1,13 @@
 // @/app/admin/edit/[id]/page.tsx
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProjectForm from "@/components/admin/project-form";
 import { handleEditProject, type FormState } from "../../actions"; // Adjusted path
-import { getProjectBySlug, getProjects } from "@/lib/projects"; // Using getProjects to find by ID
+import { getProjects } from "@/lib/projects"; // Using getProjects to find by ID
 import type { Project } from "@/types/project";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ function getProjectById(id: string): Project | undefined {
 export default function EditProjectPage({ params }: { params: { id: string } }) {
   const project = getProjectById(params.id);
   const initialState: FormState = { message: "", success: false };
-  const [state, formAction] = useFormState(handleEditProject, initialState);
+  const [state, formAction] = useActionState(handleEditProject, initialState); // Changed from useFormState
   const { toast } = useToast();
   const router = useRouter();
 
@@ -82,4 +82,3 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-

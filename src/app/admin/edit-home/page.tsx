@@ -1,7 +1,7 @@
 // @/app/admin/edit-home/page.tsx
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function EditHomePageContentPage() {
   const currentContent = getHomePageContent(); // Fetch current content for form defaults
   const initialState: FormState = { message: "", success: false, fields: currentContent as any }; // Cast current content to fields for initial load if needed
-  const [state, formAction] = useFormState(handleUpdateHomePageContent, initialState);
+  const [state, formAction] = useActionState(handleUpdateHomePageContent, initialState); // Changed from useFormState
   const { toast } = useToast();
   const router = useRouter();
 

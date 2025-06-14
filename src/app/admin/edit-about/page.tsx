@@ -1,7 +1,7 @@
 // @/app/admin/edit-about/page.tsx
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
 import { useEffect } from "react";
 import Link from "next/link";
 import AboutContentForm from "@/components/admin/about-content-form"; 
@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function EditAboutPageContentPage() {
   const currentContent = getAboutPageContent();
   const initialState: FormState = { message: "", success: false, fields: currentContent as any };
-  const [state, formAction] = useFormState(handleUpdateAboutPageContent, initialState);
+  const [state, formAction] = useActionState(handleUpdateAboutPageContent, initialState); // Changed from useFormState
   const { toast } = useToast();
 
   useEffect(() => {

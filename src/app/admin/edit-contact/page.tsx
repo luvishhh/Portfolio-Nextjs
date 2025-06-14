@@ -1,7 +1,7 @@
 // @/app/admin/edit-contact/page.tsx
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
 import { useEffect } from "react";
 import Link from "next/link";
 import ContactContentForm from "@/components/admin/contact-content-form";
@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function EditContactPageContentPage() {
   const currentContent = getContactPageContent();
   const initialState: FormState = { message: "", success: false, fields: currentContent as any };
-  const [state, formAction] = useFormState(handleUpdateContactPageContent, initialState);
+  const [state, formAction] = useActionState(handleUpdateContactPageContent, initialState); // Changed from useFormState
   const { toast } = useToast();
 
   useEffect(() => {

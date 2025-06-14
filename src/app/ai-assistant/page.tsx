@@ -1,7 +1,8 @@
 // @/app/ai-assistant/page.tsx
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
+import { useFormStatus } from "react-dom"; // useFormStatus stays from react-dom
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +25,7 @@ function SubmitButton() {
 
 export default function AiAssistantPage() {
   const initialState: AIAssistantFormState = { message: "", success: false, recommendations: [] };
-  const [state, formAction] = useFormState(getDesignRecommendationsAction, initialState);
+  const [state, formAction] = useActionState(getDesignRecommendationsAction, initialState); // Changed from useFormState
   const { toast } = useToast();
 
   useEffect(() => {
@@ -105,4 +106,3 @@ export default function AiAssistantPage() {
     </div>
   );
 }
-
