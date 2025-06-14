@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, Wand2, Mail, UserCog, Menu, X } from 'lucide-react';
+import { Home, LayoutGrid, Wand2, Mail, UserCog, Menu, X, UserCircle } from 'lucide-react'; // Added UserCircle
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import React from 'react';
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/projects', label: 'Projects', icon: LayoutGrid },
+  { href: '/about', label: 'About', icon: UserCircle }, // New "About" link
   { href: '/ai-assistant', label: 'AI Assistant', icon: Wand2 },
   { href: '/contact', label: 'Contact', icon: Mail },
   { href: '/admin', label: 'Admin', icon: UserCog },
@@ -51,7 +52,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-2">
+        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
           {navLinks.map((link) => (
             <NavLinkItem key={link.href} {...link} />
           ))}
