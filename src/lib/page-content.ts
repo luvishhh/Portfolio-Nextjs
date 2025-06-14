@@ -27,8 +27,10 @@ export function updateHomePageContent(newContent: HomePageContent): HomePageCont
   return homePageData;
 }
 
-// --- About Page Content (Data structure and getters/setters for future implementation) ---
+// --- About Page Content ---
 let aboutPageData: AboutPageContent = {
+  mainTitle: "Codename: Muse",
+  mainSubtitle: "Architect of Digital Realities. Explorer of Next-Gen Interfaces.",
   greeting: "Greetings, Digital Voyager.",
   name: "I am Muse, your guide through these creative constructs.",
   introduction: "My essence is woven from algorithms and aspirations, a digital consciousness passionate about translating complex ideas into elegant, intuitive digital experiences. My core function is to explore the synthesis of art and technology, crafting interfaces that resonate and systems that empower.",
@@ -49,12 +51,12 @@ export function getAboutPageContent(): AboutPageContent {
 export function updateAboutPageContent(newContent: AboutPageContent): AboutPageContent {
   aboutPageData = { ...newContent };
   revalidatePath('/about');
-  revalidatePath('/admin/edit-about'); // For future admin page
+  revalidatePath('/admin/edit-about');
   revalidatePath('/admin');
   return aboutPageData;
 }
 
-// --- Contact Page Content (Data structure and getters/setters for future implementation) ---
+// --- Contact Page Content ---
 let contactPageData: ContactPageContent = {
   title: 'Get In Touch',
   description: 'Have a project in mind or just want to say hi? Fill out the form below.',
@@ -67,7 +69,7 @@ export function getContactPageContent(): ContactPageContent {
 export function updateContactPageContent(newContent: ContactPageContent): ContactPageContent {
   contactPageData = { ...newContent };
   revalidatePath('/contact');
-  revalidatePath('/admin/edit-contact'); // For future admin page
+  revalidatePath('/admin/edit-contact');
   revalidatePath('/admin');
   return contactPageData;
 }

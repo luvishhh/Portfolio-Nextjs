@@ -11,7 +11,7 @@ import { getProjects } from '@/lib/projects';
 import type { Project } from '@/types/project';
 import { handleDeleteProject } from './actions';
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail } from 'lucide-react'; // Added Home, User, Mail icons
+import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail } from 'lucide-react';
 
 export default function AdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -71,7 +71,7 @@ export default function AdminPage() {
             </CardFooter>
           </Card>
           
-          <Card className="flex flex-col opacity-50 cursor-not-allowed"> {/* Placeholder for About Page */}
+          <Card className="flex flex-col">
             <CardHeader>
                <div className="flex items-center gap-3">
                 <UserIcon className="h-6 w-6 text-primary" />
@@ -79,16 +79,18 @@ export default function AdminPage() {
               </div>
             </CardHeader>
             <CardContent className="flex-grow">
-              <p className="text-sm text-muted-foreground">Edit content for your about page. (Coming Soon)</p>
+              <p className="text-sm text-muted-foreground">Edit content for your about page.</p>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" disabled>
-                <Edit className="mr-2 h-4 w-4" /> Edit About Content
-              </Button>
+              <Link href="/admin/edit-about" passHref className="w-full">
+                <Button className="w-full">
+                  <Edit className="mr-2 h-4 w-4" /> Edit About Content
+                </Button>
+              </Link>
             </CardFooter>
           </Card>
 
-          <Card className="flex flex-col opacity-50 cursor-not-allowed"> {/* Placeholder for Contact Page */}
+          <Card className="flex flex-col">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Mail className="h-6 w-6 text-primary" />
@@ -96,12 +98,14 @@ export default function AdminPage() {
               </div>
             </CardHeader>
             <CardContent className="flex-grow">
-              <p className="text-sm text-muted-foreground">Edit content for your contact page. (Coming Soon)</p>
+              <p className="text-sm text-muted-foreground">Edit content for your contact page.</p>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" disabled>
-                <Edit className="mr-2 h-4 w-4" /> Edit Contact Content
-              </Button>
+               <Link href="/admin/edit-contact" passHref className="w-full">
+                <Button className="w-full">
+                  <Edit className="mr-2 h-4 w-4" /> Edit Contact Content
+                </Button>
+              </Link>
             </CardFooter>
           </Card>
         </CardContent>

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { submitContactForm, type ContactFormState } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { MailCheck, AlertCircle, Loader2 } from "lucide-react";
+import { getContactPageContent } from "@/lib/page-content";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -26,6 +27,7 @@ export default function ContactPage() {
   const initialState: ContactFormState = { message: "", success: false };
   const [state, formAction] = useFormState(submitContactForm, initialState);
   const { toast } = useToast();
+  const content = getContactPageContent();
 
   useEffect(() => {
     if (state.message) {
@@ -52,9 +54,9 @@ export default function ContactPage() {
     <div className="max-w-2xl mx-auto py-8 animate-in fade-in-0 duration-500">
       <Card className="shadow-xl bg-card">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-4xl text-primary">Get In Touch</CardTitle>
+          <CardTitle className="font-headline text-4xl text-primary">{content.title}</CardTitle>
           <CardDescription className="text-lg">
-            Have a project in mind or just want to say hi? Fill out the form below.
+            {content.description}
           </CardDescription>
         </CardHeader>
         <CardContent>

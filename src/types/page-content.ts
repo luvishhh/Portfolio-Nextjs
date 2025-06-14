@@ -13,6 +13,8 @@ export interface HomePageContent {
 }
 
 export interface AboutPageContent {
+  mainTitle: string; // e.g., "Codename: Muse"
+  mainSubtitle: string; // e.g., "Architect of Digital Realities..."
   greeting: string;
   name: string;
   introduction: string;
