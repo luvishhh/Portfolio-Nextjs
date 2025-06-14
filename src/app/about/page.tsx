@@ -1,6 +1,10 @@
+
 // @/app/about/page.tsx
+"use client"; // Added "use client" because ProfileCard is a client component
+
 import type { Metadata } from 'next';
-import Image from 'next/image';
+// Image component might not be needed if ProfileCard handles the image fully
+// import Image from 'next/image'; 
 import { UserCircle, Sparkles, History, Database, Cpu, Code } from 'lucide-react';
 import ExperienceTimeline from '@/components/experience-timeline';
 import { getExperience } from '@/lib/experience';
@@ -8,11 +12,17 @@ import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAboutPageContent } from '@/lib/page-content';
+import ProfileCard from '@/components/profile-card'; // Import the new ProfileCard
+import '@/components/profile-card.css'; // Import the ProfileCard CSS
 
-export const metadata: Metadata = {
-  title: 'About Me - Musefolio',
-  description: 'Discover the architect behind Musefolio. My journey, skills, and vision for the digital frontier.',
-};
+// Metadata can remain a server export if AboutPage is a server component by default
+// and ProfileCard is client-side. However, since we're making AboutPage client for ProfileCard,
+// this metadata might need to be handled differently or be static.
+// For now, assuming it can be generated or is static.
+// export const metadata: Metadata = { 
+//   title: 'About Me - Musefolio',
+//   description: 'Discover the architect behind Musefolio. My journey, skills, and vision for the digital frontier.',
+// };
 
 // Static skills data - could be made dynamic in a more complex setup
 const skills = [
@@ -26,6 +36,10 @@ const skills = [
 export default function AboutPage() {
   const experienceItems: ExperienceItem[] = getExperience();
   const content = getAboutPageContent();
+
+  // Fallback for profile image if not set
+  const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png?text=Muse";
+
 
   return (
     <div className="space-y-16 md:space-y-24 animate-in fade-in-0 duration-500">
@@ -41,19 +55,27 @@ export default function AboutPage() {
           </div>
 
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            <div className="lg:col-span-2 flex justify-center animate-in fade-in-0 slide-in-from-left-20 duration-700 delay-300">
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/70 to-accent/70 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                <Image
-                  src={content.profileImage}
-                  alt="Muse - Futuristic Avatar"
-                  width={320}
-                  height={320}
-                  className="relative rounded-full shadow-2xl border-4 border-primary/50 object-cover aspect-square transition-transform duration-500 group-hover:scale-105"
-                  data-ai-hint={content.dataAiHint}
-                  priority
-                />
-              </div>
+            <div className="lg:col-span-2 flex justify-center items-center animate-in fade-in-0 slide-in-from-left-20 duration-700 delay-300">
+              {/* Replace Image with ProfileCard */}
+              <ProfileCard
+                avatarUrl={profileImageUrl}
+                miniAvatarUrl={profileImageUrl} // Can be the same or a different smaller one
+                name={content.name}
+                title="Digital Artisan & Visionary" // Or derive from content.mainSubtitle
+                handle={content.name.toLowerCase().replace(/\s+/g, '_')} // Example handle
+                status="Online" // Example status
+                iconUrl="https://placehold.co/200x200.png?text=BGPattern" // Placeholder for card's internal pattern
+                grainUrl="https://placehold.co/300x300.png?text=GrainFX" // Placeholder for card's grain effect
+                enableTilt={true}
+                showUserInfo={true}
+                className="max-w-sm mx-auto" // Ensure card itself is constrained if needed
+                 onContactClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/contact';
+                  }
+                }}
+                contactText="Reach Out"
+              />
             </div>
             <div className="lg:col-span-3 space-y-5 animate-in fade-in-0 slide-in-from-right-20 duration-700 delay-400">
               <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name}</span></h2>
