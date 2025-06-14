@@ -2,39 +2,60 @@
 "use client";
 
 import { useActionState } from "react";
-import { useEffect, use } from "react"; // Import use
+import { useEffect, use, useState } from "react"; 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProjectForm from "@/components/admin/project-form";
 import { handleEditProject, type FormState } from "../../actions"; 
-import { getProjects } from "@/lib/projects"; 
+import { getProjectById } from "@/lib/projects"; 
 import type { Project } from "@/types/project";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Helper to find project by ID since slugs can change
-function getProjectById(id: string): Project | undefined {
-  const projects = getProjects();
-  return projects.find(p => p.id === id);
-}
 
-// Define the type for params, acknowledging it might be a Promise as per Next.js warning
 type PageParams = { id: string };
 type EditProjectPageProps = {
-  params: Promise<PageParams>; // Next.js warning implies params will be a Promise
+  params: Promise<PageParams>; 
 };
 
 export default function EditProjectPage({ params }: EditProjectPageProps) {
-  // Use React.use() to unwrap the params Promise
-  const resolvedParams = use(params);
-  const project = getProjectById(resolvedParams.id);
+  const resolvedParams = use(params); // React.use() to unwrap promise
+
+  const [project, setProject] = useState<Project | null | undefined>(undefined); // undefined for loading, null for not found
+  const [loading, setLoading] = useState(true);
   
   const initialState: FormState = { message: "", success: false };
   const [state, formAction] = useActionState(handleEditProject, initialState);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    async function fetchProject() {
+      if (resolvedParams?.id) {
+        try {
+          setLoading(true);
+          const fetchedProject = await getProjectById(resolvedParams.id);
+          setProject(fetchedProject);
+        } catch (error) {
+          console.error("Failed to fetch project:", error);
+          setProject(null); // Set to null on error
+          toast({
+            title: "Error",
+            description: "Failed to load project data.",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+        setProject(null); // No ID, so not found
+      }
+    }
+    fetchProject();
+  }, [resolvedParams, toast]);
 
   useEffect(() => {
     if (state.message) {
@@ -45,16 +66,25 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         action: state.success ? <CheckCircle className="h-5 w-5 text-green-500" /> : <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       if (state.success) {
-         router.push('/admin'); // Redirect to admin dashboard after successful edit
+         router.push('/admin'); 
       }
     }
   }, [state, toast, router]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Loading project details...</p>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
       <div className="max-w-3xl mx-auto py-8 text-center">
         <h1 className="font-headline text-3xl text-destructive mb-4">Project Not Found</h1>
-        <p className="text-muted-foreground mb-6">The project you are trying to edit does not exist.</p>
+        <p className="text-muted-foreground mb-6">The project you are trying to edit does not exist or could not be loaded.</p>
         <Link href="/admin" passHref>
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -83,7 +113,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
           <ProjectForm
             formAction={formAction}
             initialState={state}
-            project={project}
+            project={project} // project will be Project type here, not null or undefined
             buttonText="Save Changes"
           />
         </CardContent>

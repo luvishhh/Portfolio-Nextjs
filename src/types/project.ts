@@ -1,5 +1,5 @@
 export interface Project {
-  id: string;
+  id: string; // Will be ObjectId string from MongoDB
   title: string;
   slug: string;
   description: string;
@@ -14,4 +14,5 @@ export interface Project {
   role?: string;
   technologies?: string[];
   dataAiHint?: string; // For placeholder main image
+  createdAt?: Date; // Optional: for sorting or tracking
 }

@@ -1,32 +1,17 @@
 // @/src/lib/page-content.ts
+import clientPromise from './mongodb';
 import type { HomePageContent, AboutPageContent, ContactPageContent } from '@/types/page-content';
-import type { Project } from '@/types/project'; // For getProjects type, though not directly used for project content here
-import { projectsData } from './projects'; // To get current projects if needed
 import type { ExperienceItem } from '@/types/experience';
 
-// --- Home Page Content ---
-let homePageData: HomePageContent = {
-  heroTitle: 'Crafting Digital Excellence',
-  heroSubtitle: 'Welcome to Musefolio, a curated collection of innovative projects and creative explorations. Discover unique designs and thoughtful user experiences.',
-  heroButtonExplore: 'Explore Projects',
-  heroButtonContact: 'Get In Touch',
-  featuredWorkTitle: 'Featured Work',
-  featuredWorkViewAll: 'View All Projects',
-  aiAssistantTitle: 'Need Design Inspiration?',
-  aiAssistantSubtitle: 'Leverage our AI Design Assistant to get tailored recommendations based on your project\'s style.',
-  aiAssistantButton: 'Try AI Assistant',
-};
+const DB_NAME = 'musefolio_db'; // Same database name as projects
+const CONTENT_COLLECTION = 'musefolio_content';
 
-export function getHomePageContent(): HomePageContent {
-  return homePageData;
+async function getDb() {
+  const client = await clientPromise;
+  return client.db(DB_NAME);
 }
 
-export function updateHomePageContent(newContent: HomePageContent): HomePageContent {
-  homePageData = { ...newContent };
-  return homePageData;
-}
-
-// Default experience data if not set by admin
+// --- Default Content ---
 const defaultExperienceItems: ExperienceItem[] = [
   {
     id: '1',
@@ -46,8 +31,19 @@ const defaultExperienceItems: ExperienceItem[] = [
   },
 ];
 
-// --- About Page Content ---
-let aboutPageData: AboutPageContent = {
+const defaultHomePageContent: HomePageContent = {
+  heroTitle: 'Crafting Digital Excellence',
+  heroSubtitle: 'Welcome to Musefolio, a curated collection of innovative projects and creative explorations. Discover unique designs and thoughtful user experiences.',
+  heroButtonExplore: 'Explore Projects',
+  heroButtonContact: 'Get In Touch',
+  featuredWorkTitle: 'Featured Work',
+  featuredWorkViewAll: 'View All Projects',
+  aiAssistantTitle: 'Need Design Inspiration?',
+  aiAssistantSubtitle: 'Leverage our AI Design Assistant to get tailored recommendations based on your project\'s style.',
+  aiAssistantButton: 'Try AI Assistant',
+};
+
+const defaultAboutPageContent: AboutPageContent = {
   mainTitle: "Codename: Muse",
   mainSubtitle: "Architect of Digital Realities. Explorer of Next-Gen Interfaces.",
   greeting: "Greetings, Digital Voyager.",
@@ -68,27 +64,7 @@ let aboutPageData: AboutPageContent = {
   experienceItems: defaultExperienceItems,
 };
 
-export function getAboutPageContent(): AboutPageContent {
-  // Ensure experienceItems always exists, falling back to default if somehow undefined
-  if (!aboutPageData.experienceItems) {
-    aboutPageData.experienceItems = defaultExperienceItems;
-  }
-  return aboutPageData;
-}
-
-export function updateAboutPageContent(newContent: Partial<AboutPageContent>): AboutPageContent {
-  aboutPageData = { ...aboutPageData, ...newContent };
-  // Ensure experienceItems is not accidentally removed if newContent doesn't provide it
-  if (newContent.experienceItems === undefined && aboutPageData.experienceItems === undefined) {
-      aboutPageData.experienceItems = defaultExperienceItems;
-  } else if (newContent.experienceItems !== undefined) {
-      aboutPageData.experienceItems = newContent.experienceItems;
-  }
-  return aboutPageData;
-}
-
-// --- Contact Page Content ---
-let contactPageData: ContactPageContent = {
+const defaultContactPageContent: ContactPageContent = {
   title: 'Get In Touch',
   description: 'Have a project in mind or just want to say hi? Fill out the form below, or reach out directly using the details provided.',
   contactName: 'MuseFolio Admin',
@@ -96,16 +72,58 @@ let contactPageData: ContactPageContent = {
   contactPhone: '+1 (555) 123-4567',
 };
 
-export function getContactPageContent(): ContactPageContent {
-  return contactPageData;
+// --- Generic Content Fetcher ---
+async function getContent<T>(contentId: string, defaultValue: T): Promise<T> {
+  const db = await getDb();
+  const contentDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
+  if (contentDoc) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _id, ...data } = contentDoc;
+    return data as T;
+  } else {
+    // If no content found, insert the default and return it
+    await db.collection(CONTENT_COLLECTION).insertOne({ _id: contentId, ...defaultValue });
+    return defaultValue;
+  }
 }
 
-export function updateContactPageContent(newContent: ContactPageContent): ContactPageContent {
-  contactPageData = { ...newContent };
-  return contactPageData;
+// --- Generic Content Updater ---
+async function updateContent<T>(contentId: string, newContent: T): Promise<T> {
+  const db = await getDb();
+  await db.collection(CONTENT_COLLECTION).updateOne(
+    { _id: contentId },
+    { $set: newContent },
+    { upsert: true }
+  );
+  return newContent;
 }
 
-// --- Helper to get projects (might be useful for admin page consistency) ---
-export function getProjects(): Project[] {
-  return projectsData;
+// --- Home Page Content ---
+export async function getHomePageContent(): Promise<HomePageContent> {
+  return getContent<HomePageContent>('homePage', defaultHomePageContent);
+}
+
+export async function updateHomePageContent(newContent: HomePageContent): Promise<HomePageContent> {
+  return updateContent<HomePageContent>('homePage', newContent);
+}
+
+// --- About Page Content ---
+export async function getAboutPageContent(): Promise<AboutPageContent> {
+  return getContent<AboutPageContent>('aboutPage', defaultAboutPageContent);
+}
+
+export async function updateAboutPageContent(newContent: Partial<AboutPageContent>): Promise<AboutPageContent> {
+  // Fetch current to merge, then update
+  const current = await getContent<AboutPageContent>('aboutPage', defaultAboutPageContent);
+  const updated = { ...current, ...newContent };
+  return updateContent<AboutPageContent>('aboutPage', updated);
+}
+
+// --- Contact Page Content ---
+export async function getContactPageContent(): Promise<ContactPageContent> {
+  return getContent<ContactPageContent>('contactPage', defaultContactPageContent);
+}
+
+export async function updateContactPageContent(newContent: ContactPageContent): Promise<ContactPageContent> {
+  return updateContent<ContactPageContent>('contactPage', newContent);
 }

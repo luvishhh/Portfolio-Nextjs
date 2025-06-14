@@ -1,12 +1,22 @@
-
 // @/app/admin/actions.ts
 "use server";
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { addProject as dbAddProject, updateProject as dbUpdateProject, deleteProject as dbDeleteProject } from "@/lib/projects";
+import { 
+  addProject as dbAddProject, 
+  updateProject as dbUpdateProject, 
+  deleteProject as dbDeleteProject,
+  getProjectById // Used for edit form initial data if needed
+} from "@/lib/projects";
 import type { Project } from "@/types/project";
-import { updateHomePageContent, updateAboutPageContent, updateContactPageContent, getAboutPageContent, getProjects } from "@/lib/page-content";
+import { 
+  updateHomePageContent as dbUpdateHomePageContent, 
+  updateAboutPageContent as dbUpdateAboutPageContent, 
+  updateContactPageContent as dbUpdateContactPageContent,
+  // getAboutPageContent, // No longer needed here, forms will fetch client-side
+  // getProjects // No longer needed here
+} from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
 import type { ExperienceItem } from "@/types/experience";
 
@@ -47,7 +57,7 @@ const addProjectSchema = projectSchemaBase.refine(data => {
 });
 
 const editProjectSchema = projectSchemaBase.extend({
-  id: z.string(),
+  id: z.string(), // This will be MongoDB ObjectId as string
 });
 
 
@@ -83,13 +93,14 @@ export async function handleAddProject(prevState: FormState, data: FormData): Pr
   const { mainImageFile, imageUrls, ...restOfData } = parsed.data;
 
   try {
-    const newProject = dbAddProject({ ...restOfData, images: projectImages } as Omit<Project, 'id' | 'slug'>);
+    const newProject = await dbAddProject({ ...restOfData, images: projectImages } as Omit<Project, 'id' | 'slug'>);
     revalidatePath("/admin");
     revalidatePath("/projects");
     revalidatePath("/");
     return { message: `Project "${newProject.title}" added successfully!`, success: true, projectId: newProject.id };
   } catch (error) {
-    return { message: "Failed to add project.", success: false, fields: formData as any };
+    console.error("handleAddProject error:", error);
+    return { message: "Failed to add project. Check server logs.", success: false, fields: formData as any };
   }
 }
 
@@ -106,7 +117,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     };
   }
 
-  const existingProject = getProjects().find(p => p.id === parsed.data.id); 
+  const existingProject = await getProjectById(parsed.data.id); 
   if (!existingProject) {
     return { message: "Project not found for editing.", success: false };
   }
@@ -124,14 +135,9 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
       updatedImageArray = [...imageUrls];
     } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) { 
        if(existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0)) {
-         // If imageUrls is explicitly empty, and no new main image, keep existing first image IF one exists.
-         // This logic can be tricky: if user CLEARS imageUrls and doesn't upload new main image,
-         // this effectively means "use old main image and no additional images".
-         // If user wants to remove ALL images, they'd clear imageUrls and could potentially need to clear mainImageFile (or we need a "remove image" button).
-         // For now, this retains the first existing image if others are cleared and no new main is uploaded.
          updatedImageArray.push(existingProject.images[0]); 
        }
-    } else { // No new main image, no new additional image URLs, retain existing images
+    } else { 
       updatedImageArray = [...existingProject.images];
     }
   }
@@ -143,7 +149,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
         images: updatedImageArray,
     };
 
-    const updatedProject = dbUpdateProject(id, projectToUpdate);
+    const updatedProject = await dbUpdateProject(id, projectToUpdate);
     if (!updatedProject) {
       return { message: "Project not found for editing (post-update check).", success: false };
     }
@@ -153,13 +159,14 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     revalidatePath("/");
     return { message: `Project "${updatedProject.title}" updated successfully!`, success: true, projectId: updatedProject.id };
   } catch (error) {
-    return { message: "Failed to update project.", success: false, fields: formData as any };
+    console.error("handleEditProject error:", error);
+    return { message: "Failed to update project. Check server logs.", success: false, fields: formData as any };
   }
 }
 
 export async function handleDeleteProject(id: string): Promise<{success: boolean, message: string}> {
   try {
-    const success = dbDeleteProject(id);
+    const success = await dbDeleteProject(id);
     if (!success) {
       return { success: false, message: "Project not found or already deleted." };
     }
@@ -168,7 +175,8 @@ export async function handleDeleteProject(id: string): Promise<{success: boolean
     revalidatePath("/");
     return { success: true, message: "Project deleted successfully." };
   } catch (error) {
-    return { success: false, message: "Failed to delete project." };
+    console.error("handleDeleteProject error:", error);
+    return { success: false, message: "Failed to delete project. Check server logs." };
   }
 }
 
@@ -198,13 +206,14 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
   }
 
   try {
-    updateHomePageContent(parsed.data as HomePageContent);
+    await dbUpdateHomePageContent(parsed.data as HomePageContent);
     revalidatePath('/'); 
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
     return { message: "Home page content updated successfully!", success: true, fields: parsed.data as any };
   } catch (error) {
-    let message = "Failed to update home page content.";
+    console.error("handleUpdateHomePageContent error:", error);
+    let message = "Failed to update home page content. Check server logs.";
     if (error instanceof Error) {
         message = error.message;
     }
@@ -225,12 +234,12 @@ const aboutPageContentSchema = z.object({
   mainTitle: z.string().min(3, "Main title is too short."),
   mainSubtitle: z.string().min(10, "Main subtitle is too short."),
   greeting: z.string().min(5, "Greeting is too short."),
-  name: z.string().min(2, "Name is too short."), // Min 2 for names like "Al"
+  name: z.string().min(2, "Name is too short."), 
   introduction: z.string().min(20, "Introduction is too short."),
   philosophy: z.string().min(20, "Philosophy is too short."),
   futureFocus: z.string().min(20, "Future focus is too short."),
-  profileImageFile: fileSchema, // For new uploads
-  dataAiHint: z.string().optional(), // For profile image
+  profileImageFile: fileSchema, 
+  dataAiHint: z.string().optional(), 
   profileCardTitle: z.string().min(3, "Profile card title is too short."),
   profileCardHandle: z.string().min(3, "Profile card handle is too short."),
   profileCardStatus: z.string().min(3, "Profile card status is too short."),
@@ -277,35 +286,37 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     };
   }
   try {
-    const currentContent = getAboutPageContent(); 
-    let newProfileImageUrl = currentContent.profileImage; 
+    // Fetch current content to preserve fields not directly in form, like existing profileImage URL if not changed
+    // This call to getAboutPageContent might need to be async if it fetches from DB.
+    // For simplicity, if lib/page-content.ts getAboutPageContent becomes async, this action needs to handle it
+    // OR we assume that the form sends all necessary fields, and we don't merge with existing.
+    // Let's assume the form should provide all current text data, and we only update the image if a new one is uploaded.
+    // const currentContent = await getAboutPageContent();  // This would be the DB version.
 
-    // Handle profile image upload
-    if (parsed.data.profileImageFile && parsed.data.profileImageFile.size > 0) {
-      // Simulate file upload by using a placeholder URL
-      // In a real app, this would involve uploading to a storage service (e.g., Firebase Storage)
-      // and getting the public URL.
-      newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL; // Use the defined placeholder
+    let newProfileImageUrl: string | undefined = undefined; // Will be set if new image uploaded
+    const { profileImageFile, experienceItemsJSON, ...restOfData } = parsed.data;
+
+    if (profileImageFile && profileImageFile.size > 0) {
+      newProfileImageUrl = SIMULATED_PROFILE_IMAGE_URL; 
     }
     
-    // Destructure to separate file from other data
-    const { profileImageFile, experienceItemsJSON, ...restOfData } = parsed.data;
-    
-    const contentToUpdate: AboutPageContent = {
-      ...currentContent, // Start with existing content to preserve fields not in form
-      ...restOfData,      // Override with new data from form
-      profileImage: newProfileImageUrl, // Set the (potentially new) profile image URL
-      experienceItems: experienceItemsJSON, // This is already parsed to ExperienceItem[]
+    const contentToUpdate: Partial<AboutPageContent> = { // Use Partial as we might not update image
+      ...restOfData,
+      experienceItems: experienceItemsJSON,
     };
 
-    updateAboutPageContent(contentToUpdate);
+    if (newProfileImageUrl) {
+      contentToUpdate.profileImage = newProfileImageUrl;
+    }
+
+    const updatedContent = await dbUpdateAboutPageContent(contentToUpdate);
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
-    // Return all fields, including the potentially updated profileImage and parsed experienceItems
-    return { message: "About page content updated successfully!", success: true, fields: contentToUpdate as any };
+    return { message: "About page content updated successfully!", success: true, fields: updatedContent as any };
   } catch (error) {
-    let message = "Failed to update about page content.";
+    console.error("handleUpdateAboutPageContent error:", error);
+    let message = "Failed to update about page content. Check server logs.";
     if (error instanceof Error) {
         message = error.message;
     }
@@ -333,13 +344,14 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     };
   }
   try {
-    updateContactPageContent(parsed.data as ContactPageContent);
+    await dbUpdateContactPageContent(parsed.data as ContactPageContent);
     revalidatePath('/contact');
     revalidatePath('/admin/edit-contact');
     revalidatePath('/admin');
     return { message: "Contact page content updated successfully!", success: true, fields: parsed.data as any };
   } catch (error) {
-    let message = "Failed to update contact page content.";
+    console.error("handleUpdateContactPageContent error:", error);
+    let message = "Failed to update contact page content. Check server logs.";
     if (error instanceof Error) {
         message = error.message;
     }

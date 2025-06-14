@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   description: 'Explore all creative projects showcased on Musefolio.',
 };
 
-export default function ProjectsPage() {
-  const projects = getProjects();
+export default async function ProjectsPage() { // Made async
+  const projects = await getProjects(); // Awaited
 
   return (
     <div className="animate-in fade-in-0 duration-500">

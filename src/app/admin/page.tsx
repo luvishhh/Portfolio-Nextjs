@@ -11,19 +11,33 @@ import { getProjects } from '@/lib/projects';
 import type { Project } from '@/types/project';
 import { handleDeleteProject } from './actions';
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail, Loader2 } from 'lucide-react';
 
 export default function AdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProjects = () => {
-    const currentProjects = getProjects(); 
-    setProjects([...currentProjects]); 
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const currentProjects = await getProjects(); 
+      setProjects(currentProjects); 
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load projects. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -125,7 +139,12 @@ export default function AdminPage() {
           </Link>
         </CardHeader>
         <CardContent>
-          {projects.length > 0 ? (
+          {loading ? (
+             <div className="flex justify-center items-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-3 text-muted-foreground">Loading projects...</p>
+              </div>
+          ) : projects.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -177,7 +196,7 @@ export default function AdminPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground">No projects found. Add one to get started!</p>
+            <p className="text-muted-foreground text-center py-5">No projects found. Add one to get started!</p>
           )}
         </CardContent>
       </Card>

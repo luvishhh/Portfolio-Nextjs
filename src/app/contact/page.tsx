@@ -3,7 +3,7 @@
 
 import { useActionState } from "react"; 
 import { useFormStatus } from "react-dom"; 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { submitContactForm, type ContactFormState } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { MailCheck, AlertCircle, Loader2, User, Phone, Mail as MailIcon } from "lucide-react"; // Added User, Phone, MailIcon
+import { MailCheck, AlertCircle, Loader2, User, Phone, Mail as MailIcon } from "lucide-react";
 import { getContactPageContent } from "@/lib/page-content";
+import type { ContactPageContent as ContactPageContentType } from "@/types/page-content";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -28,7 +29,23 @@ export default function ContactPage() {
   const initialState: ContactFormState = { message: "", success: false };
   const [state, formAction] = useActionState(submitContactForm, initialState); 
   const { toast } = useToast();
-  const content = getContactPageContent();
+  const [content, setContent] = useState<ContactPageContentType | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchContent() {
+      try {
+        setLoading(true);
+        const fetchedContent = await getContactPageContent();
+        setContent(fetchedContent);
+      } catch (error) {
+        console.error("Failed to fetch contact page content:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchContent();
+  }, []);
 
   useEffect(() => {
     if (state.message) {
@@ -49,6 +66,19 @@ export default function ContactPage() {
       }
     }
   }, [state, toast]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+         <p className="ml-4 text-lg text-muted-foreground">Loading Contact Details...</p>
+      </div>
+    );
+  }
+  
+  if (!content) {
+     return <div className="text-center py-10">Failed to load content. Please try again later.</div>;
+  }
   
   return (
     <div className="max-w-3xl mx-auto py-8 animate-in fade-in-0 duration-500">

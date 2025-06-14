@@ -2,13 +2,13 @@ import Link from 'next/link';
 import ProjectCard from '@/components/project-card';
 import { Button } from '@/components/ui/button';
 import { getProjects } from '@/lib/projects';
-import { getHomePageContent } from '@/lib/page-content'; // Import function to get home page content
+import { getHomePageContent } from '@/lib/page-content'; 
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-export default function HomePage() {
-  const allProjects = getProjects();
+export default async function HomePage() { // Made async
+  const allProjects = await getProjects(); // Awaited
   const featuredProjects = allProjects.filter(p => p.featured).slice(0, 3);
-  const content = getHomePageContent(); // Fetch home page content
+  const content = await getHomePageContent(); // Awaited
 
   return (
     <div className="space-y-16 animate-in fade-in-0 duration-500">

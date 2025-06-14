@@ -1,9 +1,7 @@
-
 // @/app/about/page.tsx
 "use client"; 
 
-import type { Metadata } from 'next'; // Metadata type can still be used if needed for client-side updates, though usually for server
-import { UserCircle, Sparkles, History, Database, Cpu, Code } from 'lucide-react';
+import { UserCircle, Sparkles, History, Database, Cpu, Code, Loader2 } from 'lucide-react';
 import ExperienceTimeline from '@/components/experience-timeline';
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { getAboutPageContent } from '@/lib/page-content';
 import ProfileCard from '@/components/profile-card'; 
 import '@/components/profile-card.css'; 
-import { useEffect, useState } from 'react'; // Added useState and useEffect for client-side content fetching
+import { useEffect, useState } from 'react';
+import type { AboutPageContent } from '@/types/page-content';
 
 const skills = [
   { name: "Quantum UI/UX Design", icon: Cpu, level: "Expert" },
@@ -21,23 +20,38 @@ const skills = [
   { name: "Temporal Mechanics (Theoretical)", icon: History, level: "Novice" },
 ];
 
-// export const metadata: Metadata = { // Metadata generation usually done on server, removed for client component
-//   title: 'About Muse - Musefolio',
-//   description: 'Learn more about the creator and vision behind Musefolio.',
-// };
-
 export default function AboutPage() {
-  // Fetch content client-side since ProfileCard uses client hooks
-  // and content might update after initial load via admin panel
-  const [content, setContent] = useState(getAboutPageContent());
+  const [content, setContent] = useState<AboutPageContent | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  // If you want to ensure fresh content on navigation without full reload,
-  // you might need more complex state management or re-fetch triggers.
-  // For now, getAboutPageContent() fetches the current state from the module.
   useEffect(() => {
-     setContent(getAboutPageContent());
+    async function fetchContent() {
+      try {
+        setLoading(true);
+        const fetchedContent = await getAboutPageContent();
+        setContent(fetchedContent);
+      } catch (error) {
+        console.error("Failed to fetch about page content:", error);
+        // Optionally set some error state or fallback content
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchContent();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Loading About Muse...</p>
+      </div>
+    );
+  }
+
+  if (!content) {
+    return <div className="text-center py-10">Failed to load content. Please try again later.</div>;
+  }
 
   const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png";
   const experienceItems: ExperienceItem[] = content.experienceItems || [];
@@ -80,7 +94,7 @@ export default function AboutPage() {
               />
             </div>
             <div className="lg:col-span-3 space-y-5 animate-in fade-in-0 slide-in-from-right-20 duration-700 delay-400">
-              <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name.split(" ")[0]}</span></h2> {/* Displaying first part of name for brevity in greeting */}
+              <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name.split(" ")[0]}</span></h2>
               <p className="text-md sm:text-lg text-foreground/80 leading-relaxed">
                 {content.introduction}
               </p>

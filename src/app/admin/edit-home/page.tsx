@@ -1,24 +1,48 @@
 // @/app/admin/edit-home/page.tsx
 "use client";
 
-import { useActionState } from "react"; // Changed from react-dom
-import { useEffect } from "react";
+import { useActionState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Not used
 import HomeContentForm from "@/components/admin/home-content-form";
 import { handleUpdateHomePageContent, type FormState } from "../actions";
 import { getHomePageContent } from "@/lib/page-content";
+import type { HomePageContent as HomePageContentType } from "@/types/page-content";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function EditHomePageContentPage() {
-  const currentContent = getHomePageContent(); // Fetch current content for form defaults
-  const initialState: FormState = { message: "", success: false, fields: currentContent as any }; // Cast current content to fields for initial load if needed
-  const [state, formAction] = useActionState(handleUpdateHomePageContent, initialState); // Changed from useFormState
+  const [currentContent, setCurrentContent] = useState<HomePageContentType | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const router = useRouter();
+  // const router = useRouter(); // Not used here
+
+  const initialState: FormState = { message: "", success: false, fields: {} };
+  const [state, formAction] = useActionState(handleUpdateHomePageContent, initialState);
+
+  useEffect(() => {
+    async function fetchContent() {
+      try {
+        setLoading(true);
+        const fetchedContent = await getHomePageContent();
+        setCurrentContent(fetchedContent);
+      } catch (error) {
+        console.error("Failed to fetch home page content for admin:", error);
+        toast({
+          title: "Error",
+          description: "Could not load current home page content.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchContent();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (state.message) {
@@ -28,12 +52,36 @@ export default function EditHomePageContentPage() {
         variant: state.success ? "default" : "destructive",
         action: state.success ? <CheckCircle className="h-5 w-5 text-green-500" /> : <AlertCircle className="h-5 w-5 text-red-500" />,
       });
-      // No automatic redirect on success for content pages, user might want to see changes or make more.
-      // if (state.success) {
-      //    router.push('/admin'); 
-      // }
+      if (state.success && state.fields) {
+         setCurrentContent(state.fields as HomePageContentType);
+      }
     }
-  }, [state, toast, router]);
+  }, [state, toast]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Loading Home Page Editor...</p>
+      </div>
+    );
+  }
+  
+  if (!currentContent) {
+     return (
+      <div className="max-w-3xl mx-auto py-8 text-center">
+         <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+        <p className="text-muted-foreground mb-6">Could not load Home page content for editing.</p>
+        <Link href="/admin" passHref>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Admin Panel
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
 
   return (
     <div className="max-w-3xl mx-auto py-8 animate-in fade-in-0 duration-500">
@@ -53,7 +101,7 @@ export default function EditHomePageContentPage() {
           <HomeContentForm
             formAction={formAction}
             initialState={state}
-            content={currentContent} // Pass current content to prefill the form
+            content={currentContent}
             buttonText="Save Home Page Content"
           />
         </CardContent>
