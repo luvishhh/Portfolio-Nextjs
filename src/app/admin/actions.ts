@@ -3,6 +3,8 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import {
   addProject as dbAddProject,
   updateProject as dbUpdateProject,
@@ -28,6 +30,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 
 const SIMULATED_PROJECT_MAIN_IMAGE_URL = "https://placehold.co/1200x800.png";
 const SIMULATED_PROFILE_IMAGE_URL = "https://placehold.co/400x400.png";
+const ADMIN_SESSION_COOKIE_NAME = 'musefolio-admin-session';
 
 
 const fileSchema = z.instanceof(File).optional()
@@ -66,7 +69,7 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | undefined | boolean | number | ExperienceItem[] | SkillItem[]>;
+  fields?: Record<string, any>; // Changed to 'any' to accommodate various content types
   success: boolean;
   projectId?: string;
 };
@@ -227,7 +230,6 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
     
-    // Sanitize content before returning to client
     const sanitizedContent: HomePageContent = {
       heroTitle: updatedContentFromDb.heroTitle,
       heroSubtitle: updatedContentFromDb.heroSubtitle,
@@ -354,7 +356,7 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     }
 
     const fullContentToUpdate: AboutPageContent = {
-      ...currentContent, // Start with current content to preserve any fields not in the form
+      ...currentContent, 
       ...restOfDataFromForm,
       skills: skillsJSON, 
       experienceItems: experienceItemsJSON,
@@ -367,7 +369,6 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
 
-    // Sanitize content before returning to client
     const sanitizedContent: AboutPageContent = {
       mainTitle: updatedContentFromDb.mainTitle,
       mainSubtitle: updatedContentFromDb.mainSubtitle,
@@ -432,7 +433,6 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     revalidatePath('/admin/edit-contact');
     revalidatePath('/admin');
 
-    // Sanitize content before returning to client
     const sanitizedContent: ContactPageContent = {
       title: updatedContentFromDb.title,
       description: updatedContentFromDb.description,
@@ -502,3 +502,53 @@ export async function fetchContactPageContentForAdminEdit(): Promise<ContactPage
   }
 }
 
+// --- Authentication Actions ---
+const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
+
+export async function handleLogin(prevState: FormState, data: FormData): Promise<FormState> {
+  const formData = Object.fromEntries(data);
+  const parsed = loginSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    return {
+      message: "Invalid login data.",
+      issues: parsed.error.issues.map((issue) => issue.message),
+      fields: parsed.data, // Send back the parsed data (even if invalid) to repopulate email
+      success: false,
+    };
+  }
+
+  const { email, password } = parsed.data;
+
+  // IMPORTANT: Hardcoded credentials - NOT FOR PRODUCTION
+  if (email === "lavishkhare@gmail.com" && password === "admin@123") {
+    const cookieStore = cookies();
+    cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "true", { // Value can be a more complex token in production
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/admin', // Restrict cookie to admin paths
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      sameSite: 'lax',
+    });
+    redirect('/admin'); // Redirect to admin dashboard on successful login
+    // Note: redirect() throws an error to stop further execution and signal the redirect.
+    // So, no FormState needs to be explicitly returned here for the success case IF redirect happens.
+    // However, to satisfy TypeScript if redirect doesn't happen for some reason or for testing:
+    // return { message: "Login successful!", success: true }; 
+  } else {
+    return {
+      message: "Invalid email or password.",
+      fields: { email }, // Only send back email to repopulate
+      success: false,
+    };
+  }
+}
+
+export async function handleLogout(): Promise<void> {
+  const cookieStore = cookies();
+  cookieStore.delete(ADMIN_SESSION_COOKIE_NAME);
+  redirect('/admin/login');
+}

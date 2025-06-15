@@ -7,21 +7,36 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-// No longer directly importing from @/lib/projects
 import type { Project } from '@/types/project';
-import { handleDeleteProject, fetchProjectsForAdminDashboard } from './actions'; // Updated import
+import { handleDeleteProject, fetchProjectsForAdminDashboard, handleLogout } from './actions'; 
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail, Loader2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail, Loader2, LogOut } from 'lucide-react';
+import { useFormState, useFormStatus } from "react-dom"; // Added useFormStatus
+
+function LogoutButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="outline" disabled={pending}>
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+      {pending ? "Logging out..." : "Logout"}
+    </Button>
+  );
+}
 
 export default function AdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadProjects = async () => { // Renamed for clarity
+  // useActionState for logout if it needs to return a state, otherwise direct call is fine
+  // For a simple logout that just redirects, a direct call in a form is okay.
+  // const [logoutState, logoutAction] = useActionState(handleLogout, { message: "", success: false });
+
+
+  const loadProjects = async () => { 
     try {
       setLoading(true);
-      const currentProjects = await fetchProjectsForAdminDashboard(); // Use server action
+      const currentProjects = await fetchProjectsForAdminDashboard(); 
       setProjects(currentProjects); 
     } catch (error) {
       console.error("Failed to fetch projects:", error);
@@ -49,7 +64,7 @@ export default function AdminPage() {
       variant: result.success ? "default" : "destructive",
     });
     if (result.success) {
-      loadProjects(); // Reload projects after deletion
+      loadProjects(); 
     }
   };
 
@@ -57,6 +72,9 @@ export default function AdminPage() {
     <div className="space-y-8 animate-in fade-in-0 duration-500">
       <div className="flex items-center justify-between">
         <h1 className="font-headline text-4xl font-bold text-primary">Admin Panel</h1>
+        <form action={handleLogout}>
+          <LogoutButton />
+        </form>
       </div>
 
       {/* Manage Page Content Section */}
@@ -203,3 +221,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
