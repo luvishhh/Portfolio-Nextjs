@@ -4,11 +4,13 @@ import type {Configuration as WebpackConfiguration} from 'webpack';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverActions: {
-    allowedOrigins: [
-        'https://6000-firebase-studio-1749905570510.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
-        // 'http://localhost:9002' // Temporarily commented out for focused debugging
-    ],
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+          'https://6000-firebase-studio-1749905570510.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
+          // 'http://localhost:9002' // Kept commented out based on previous debugging steps
+      ],
+    },
   },
   typescript: {
     ignoreBuildErrors: true,
