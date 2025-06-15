@@ -61,7 +61,7 @@ export default function AboutPage() {
     return <div className="text-center py-10">Failed to load content. Please try again later.</div>;
   }
 
-  const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png";
+  const profileImageUrl = (content.profileImage && content.profileImage.trim() !== "") ? content.profileImage.trim() : "https://placehold.co/400x400.png";
   const experienceItems: ExperienceItem[] = content.experienceItems || [];
   const skillsToDisplay: SkillItem[] = content.skills || []; // Use skills from content
 
