@@ -529,7 +529,7 @@ export async function handleLogin(prevState: FormState, data: FormData): Promise
     cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "true", { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      path: '/', // Changed from '/admin' to '/'
+      path: '/', 
       maxAge: 60 * 60 * 24 * 7, // 1 week
       sameSite: 'lax',
     });
@@ -545,11 +545,11 @@ export async function handleLogin(prevState: FormState, data: FormData): Promise
 
 export async function handleLogout(): Promise<void> {
   const cookieStore = cookies();
-  cookieStore.delete(ADMIN_SESSION_COOKIE_NAME); // Path will default to '/' if not specified, matching the set path
+  // Explicitly specify options when deleting the cookie for robustness
+  cookieStore.delete({ 
+    name: ADMIN_SESSION_COOKIE_NAME, 
+    path: '/',
+  });
   redirect('/admin/login');
 }
-
-
-    
-
     
