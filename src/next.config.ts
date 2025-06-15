@@ -4,10 +4,11 @@ import type { Configuration as WebpackConfiguration } from 'webpack'
 const nextConfig: NextConfig = {
   /* config options here */
   serverActions: {
+    // Moved to top level
     allowedOrigins: [
       'https://6000-firebase-studio-1749905570510.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
     ],
-    bodySizeLimit: '5mb', // Increased body size limit
+    bodySizeLimit: '5mb',
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -36,7 +37,7 @@ const nextConfig: NextConfig = {
         tls: false,
         net: false,
         dns: false,
-        'timers/promises': false, // Added timers/promises
+        'timers/promises': false,
       }
     }
     return config
