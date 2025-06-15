@@ -2,11 +2,10 @@ import type { NextConfig } from 'next'
 import type { Configuration as WebpackConfiguration } from 'webpack'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   serverActions: {
-    // Moved to top level
     allowedOrigins: [
       'https://6000-firebase-studio-1749905570510.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
+      'http://localhost:9002',
     ],
     bodySizeLimit: '5mb',
   },
@@ -28,10 +27,9 @@ const nextConfig: NextConfig = {
   },
   webpack: (config: WebpackConfiguration, { isServer }) => {
     if (!isServer) {
-      // Ensure config.resolve and config.resolve.fallback objects exist before modifying
       config.resolve = config.resolve || {}
       config.resolve.fallback = {
-        ...(config.resolve.fallback || {}), // Preserve existing fallbacks
+        ...(config.resolve.fallback || {}),
         child_process: false,
         fs: false,
         tls: false,
