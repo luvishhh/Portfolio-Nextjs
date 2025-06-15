@@ -8,16 +8,17 @@ import {
   addProject as dbAddProject, 
   updateProject as dbUpdateProject, 
   deleteProject as dbDeleteProject,
-  getProjectById
+  getProjectById as dbGetProjectById,
+  getProjects as dbGetProjects
 } from "@/lib/projects";
 import type { Project } from "@/types/project";
 import { 
   updateHomePageContent as dbUpdateHomePageContent, 
   updateAboutPageContent as dbUpdateAboutPageContent, 
   updateContactPageContent as dbUpdateContactPageContent,
-  getAboutPageContent, // Now needed in the action
-  getHomePageContent,
-  getContactPageContent,
+  getAboutPageContent as dbGetAboutPageContent,
+  getHomePageContent as dbGetHomePageContent,
+  getContactPageContent as dbGetContactPageContent,
 } from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
 import type { ExperienceItem } from "@/types/experience";
@@ -118,7 +119,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     };
   }
 
-  const existingProject = await getProjectById(parsed.data.id); 
+  const existingProject = await dbGetProjectById(parsed.data.id); 
   if (!existingProject) {
     return { message: "Project not found for editing.", success: false };
   }
@@ -287,23 +288,20 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     };
   }
   try {
-    const currentContent = await getAboutPageContent(); // Fetch current content to preserve unchanged fields like existing image URL
+    const currentContent = await dbGetAboutPageContent(); 
     
     const { profileImageFile, experienceItemsJSON, ...restOfDataFromForm } = parsed.data;
 
-    let profileImageToSave = currentContent.profileImage; // Default to existing image
+    let profileImageToSave = currentContent.profileImage; 
     if (profileImageFile && profileImageFile.size > 0) {
-      profileImageToSave = SIMULATED_PROFILE_IMAGE_URL; // Replace with new "uploaded" image URL
+      profileImageToSave = SIMULATED_PROFILE_IMAGE_URL; 
     }
     
     const fullContentToUpdate: AboutPageContent = {
-      ...currentContent, // Start with existing values from DB (or defaults if DB was empty)
-      ...restOfDataFromForm, // Override with all validated text fields from the form
-      experienceItems: experienceItemsJSON, // Override with parsed experience items
-      profileImage: profileImageToSave, // Set the determined profile image URL
-      // Ensure dataAiHint is handled: if not in form, Zod default might apply, or use current.
-      // Zod schema now has .default("profile avatar") for dataAiHint.
-      // So restOfDataFromForm.dataAiHint will have a value.
+      ...currentContent, 
+      ...restOfDataFromForm, 
+      experienceItems: experienceItemsJSON, 
+      profileImage: profileImageToSave, 
     };
 
     const finalUpdatedContent = await dbUpdateAboutPageContent(fullContentToUpdate);
@@ -342,8 +340,6 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     };
   }
   try {
-    // For contact page, it's simpler as it doesn't have image uploads or complex JSON structures like About.
-    // We can directly pass parsed.data, assuming the schema covers all fields of ContactPageContent.
     const updatedContent = await dbUpdateContactPageContent(parsed.data as ContactPageContent);
     revalidatePath('/contact');
     revalidatePath('/admin/edit-contact');
@@ -359,4 +355,54 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
   }
 }
 
+// --- Server Actions for fetching initial data for admin client components ---
+export async function fetchProjectsForAdminDashboard(): Promise<Project[]> {
+  try {
+    const projects = await dbGetProjects();
+    return projects;
+  } catch (error) {
+    console.error("Error fetching projects for admin dashboard:", error);
+    return []; // Return empty array on error to prevent breaking the client
+  }
+}
+
+export async function fetchProjectForAdminEdit(id: string): Promise<Project | null | undefined> {
+  try {
+    const project = await dbGetProjectById(id);
+    return project;
+  } catch (error) {
+    console.error(`Error fetching project with id ${id} for admin edit:`, error);
+    return null; // Return null on error
+  }
+}
+
+export async function fetchHomePageContentForAdminEdit(): Promise<HomePageContent | null> {
+  try {
+    const content = await dbGetHomePageContent();
+    return content;
+  } catch (error) {
+    console.error("Error fetching home page content for admin edit:", error);
+    return null;
+  }
+}
+
+export async function fetchAboutPageContentForAdminEdit(): Promise<AboutPageContent | null> {
+  try {
+    const content = await dbGetAboutPageContent();
+    return content;
+  } catch (error) {
+    console.error("Error fetching about page content for admin edit:", error);
+    return null;
+  }
+}
+
+export async function fetchContactPageContentForAdminEdit(): Promise<ContactPageContent | null> {
+  try {
+    const content = await dbGetContactPageContent();
+    return content;
+  } catch (error) {
+    console.error("Error fetching contact page content for admin edit:", error);
+    return null;
+  }
+}
     

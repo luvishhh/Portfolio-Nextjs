@@ -4,10 +4,9 @@
 import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-// import { useRouter } from "next/navigation"; // Not used
 import HomeContentForm from "@/components/admin/home-content-form";
-import { handleUpdateHomePageContent, type FormState } from "../actions";
-import { getHomePageContent } from "@/lib/page-content";
+import { handleUpdateHomePageContent, fetchHomePageContentForAdminEdit, type FormState } from "../actions"; // Import fetchHomePageContentForAdminEdit
+// No longer directly importing from @/lib/page-content
 import type { HomePageContent as HomePageContentType } from "@/types/page-content";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,16 +17,15 @@ export default function EditHomePageContentPage() {
   const [currentContent, setCurrentContent] = useState<HomePageContentType | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  // const router = useRouter(); // Not used here
 
   const initialState: FormState = { message: "", success: false, fields: {} };
   const [state, formAction] = useActionState(handleUpdateHomePageContent, initialState);
 
   useEffect(() => {
-    async function fetchContent() {
+    async function loadContent() { // Renamed for clarity
       try {
         setLoading(true);
-        const fetchedContent = await getHomePageContent();
+        const fetchedContent = await fetchHomePageContentForAdminEdit(); // Use server action
         setCurrentContent(fetchedContent);
       } catch (error) {
         console.error("Failed to fetch home page content for admin:", error);
@@ -40,7 +38,7 @@ export default function EditHomePageContentPage() {
         setLoading(false);
       }
     }
-    fetchContent();
+    loadContent();
      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

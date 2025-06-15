@@ -6,8 +6,8 @@ import { useEffect, use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProjectForm from "@/components/admin/project-form";
-import { handleEditProject, type FormState } from "../../actions"; 
-import { getProjectById } from "@/lib/projects"; 
+import { handleEditProject, fetchProjectForAdminEdit, type FormState } from "../../actions"; // Import fetchProjectForAdminEdit
+// No longer directly importing from @/lib/projects
 import type { Project } from "@/types/project";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,9 @@ type EditProjectPageProps = {
 };
 
 export default function EditProjectPage({ params }: EditProjectPageProps) {
-  const resolvedParams = use(params); // React.use() to unwrap promise
+  const resolvedParams = use(params); 
 
-  const [project, setProject] = useState<Project | null | undefined>(undefined); // undefined for loading, null for not found
+  const [project, setProject] = useState<Project | null | undefined>(undefined); 
   const [loading, setLoading] = useState(true);
   
   const initialState: FormState = { message: "", success: false };
@@ -32,15 +32,15 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchProject() {
+    async function loadProject() { // Renamed for clarity
       if (resolvedParams?.id) {
         try {
           setLoading(true);
-          const fetchedProject = await getProjectById(resolvedParams.id);
+          const fetchedProject = await fetchProjectForAdminEdit(resolvedParams.id); // Use server action
           setProject(fetchedProject);
         } catch (error) {
           console.error("Failed to fetch project:", error);
-          setProject(null); // Set to null on error
+          setProject(null); 
           toast({
             title: "Error",
             description: "Failed to load project data.",
@@ -51,10 +51,10 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         }
       } else {
         setLoading(false);
-        setProject(null); // No ID, so not found
+        setProject(null); 
       }
     }
-    fetchProject();
+    loadProject();
   }, [resolvedParams, toast]);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
           <ProjectForm
             formAction={formAction}
             initialState={state}
-            project={project} // project will be Project type here, not null or undefined
+            project={project} 
             buttonText="Save Changes"
           />
         </CardContent>

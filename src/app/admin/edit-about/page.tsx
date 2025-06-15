@@ -5,8 +5,8 @@ import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AboutContentForm from "@/components/admin/about-content-form"; 
-import { handleUpdateAboutPageContent, type FormState } from "../actions";
-import { getAboutPageContent } from "@/lib/page-content";
+import { handleUpdateAboutPageContent, fetchAboutPageContentForAdminEdit, type FormState } from "../actions"; // Import fetchAboutPageContentForAdminEdit
+// No longer directly importing from @/lib/page-content
 import type { AboutPageContent } from "@/types/page-content";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,20 +18,15 @@ export default function EditAboutPageContentPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  // Initial state for useActionState needs to be set before async data fetching for the form.
-  // We'll pass the fetched content to the form once available.
   const initialState: FormState = { message: "", success: false, fields: {} }; 
   const [state, formAction] = useActionState(handleUpdateAboutPageContent, initialState);
 
   useEffect(() => {
-    async function fetchContent() {
+    async function loadContent() { // Renamed for clarity
       try {
         setLoading(true);
-        const fetchedContent = await getAboutPageContent();
+        const fetchedContent = await fetchAboutPageContentForAdminEdit(); // Use server action
         setCurrentContent(fetchedContent);
-        // If formAction needs initial fields from fetchedContent and it's not already handled by form logic
-        // we might update a ref or a separate state for it.
-        // For now, AboutContentForm takes 'content' prop directly.
       } catch (error) {
         console.error("Failed to fetch about page content for admin:", error);
         toast({
@@ -43,9 +38,9 @@ export default function EditAboutPageContentPage() {
         setLoading(false);
       }
     }
-    fetchContent();
+    loadContent();
      // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Fetch only on mount
+  }, []); 
 
   useEffect(() => {
     if (state.message) {
@@ -56,7 +51,6 @@ export default function EditAboutPageContentPage() {
         action: state.success ? <CheckCircle className="h-5 w-5 text-green-500" /> : <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       if (state.success && state.fields) {
-        // Update local state with the successful fields to re-render form with new defaults
          setCurrentContent(state.fields as AboutPageContent);
       }
     }
@@ -104,8 +98,8 @@ export default function EditAboutPageContentPage() {
         <CardContent>
           <AboutContentForm
             formAction={formAction}
-            initialState={state} // This state is for the form submission result
-            content={currentContent} // This is the asynchronously fetched content for form defaults
+            initialState={state} 
+            content={currentContent} 
             buttonText="Save About Page Content"
           />
         </CardContent>

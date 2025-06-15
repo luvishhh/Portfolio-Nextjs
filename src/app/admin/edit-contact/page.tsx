@@ -5,8 +5,8 @@ import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ContactContentForm from "@/components/admin/contact-content-form";
-import { handleUpdateContactPageContent, type FormState } from "../actions";
-import { getContactPageContent } from "@/lib/page-content";
+import { handleUpdateContactPageContent, fetchContactPageContentForAdminEdit, type FormState } from "../actions"; // Import fetchContactPageContentForAdminEdit
+// No longer directly importing from @/lib/page-content
 import type { ContactPageContent as ContactPageContentType } from "@/types/page-content";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,14 @@ export default function EditContactPageContentPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Initial state for useActionState
   const initialState: FormState = { message: "", success: false, fields: {} };
   const [state, formAction] = useActionState(handleUpdateContactPageContent, initialState);
 
   useEffect(() => {
-    async function fetchContent() {
+    async function loadContent() { // Renamed for clarity
       try {
         setLoading(true);
-        const fetchedContent = await getContactPageContent();
+        const fetchedContent = await fetchContactPageContentForAdminEdit(); // Use server action
         setCurrentContent(fetchedContent);
       } catch (error) {
         console.error("Failed to fetch contact page content for admin:", error);
@@ -39,7 +38,7 @@ export default function EditContactPageContentPage() {
         setLoading(false);
       }
     }
-    fetchContent();
+    loadContent();
      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

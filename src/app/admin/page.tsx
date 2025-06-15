@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { getProjects } from '@/lib/projects'; 
+// No longer directly importing from @/lib/projects
 import type { Project } from '@/types/project';
-import { handleDeleteProject } from './actions';
+import { handleDeleteProject, fetchProjectsForAdminDashboard } from './actions'; // Updated import
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Edit, Trash2, Eye, Home, UserCircle as UserIcon, Mail, Loader2 } from 'lucide-react';
 
@@ -18,10 +18,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProjects = async () => {
+  const loadProjects = async () => { // Renamed for clarity
     try {
       setLoading(true);
-      const currentProjects = await getProjects(); 
+      const currentProjects = await fetchProjectsForAdminDashboard(); // Use server action
       setProjects(currentProjects); 
     } catch (error) {
       console.error("Failed to fetch projects:", error);
@@ -36,7 +36,7 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
+    loadProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,7 +49,7 @@ export default function AdminPage() {
       variant: result.success ? "default" : "destructive",
     });
     if (result.success) {
-      fetchProjects(); 
+      loadProjects(); // Reload projects after deletion
     }
   };
 
