@@ -21,7 +21,7 @@ import {
 } from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
 import type { ExperienceItem } from "@/types/experience";
-import type { SkillItem } from "@/types/skill"; // Added import
+import type { SkillItem } from "@/types/skill";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -66,20 +66,34 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[] | SkillItem[]>; // Added SkillItem[]
+  fields?: Record<string, string | string[] | undefined | boolean | number | ExperienceItem[] | SkillItem[]>; // File removed from here
   success: boolean;
   projectId?: string;
 };
 
+// Helper function to serialize form data for error state, removing File objects
+function serializeFormDataForErrorState(
+  formData: Record<string, any>
+): FormState['fields'] {
+  const serializedFields: FormState['fields'] = {};
+  for (const key in formData) {
+    if (!(formData[key] instanceof File)) {
+      serializedFields[key] = formData[key];
+    }
+  }
+  return serializedFields;
+}
+
+
 export async function handleAddProject(prevState: FormState, data: FormData): Promise<FormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = addProjectSchema.safeParse(formData);
+  const formDataObject = Object.fromEntries(data);
+  const parsed = addProjectSchema.safeParse(formDataObject);
 
   if (!parsed.success) {
     return {
       message: "Invalid project data.",
       issues: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
-      fields: formData as any,
+      fields: serializeFormDataForErrorState(formDataObject),
       success: false,
     };
   }
@@ -102,19 +116,19 @@ export async function handleAddProject(prevState: FormState, data: FormData): Pr
     return { message: `Project "${newProject.title}" added successfully!`, success: true, projectId: newProject.id };
   } catch (error) {
     console.error("handleAddProject error:", error);
-    return { message: "Failed to add project. Check server logs.", success: false, fields: formData as any };
+    return { message: "Failed to add project. Check server logs.", success: false, fields: serializeFormDataForErrorState(formDataObject) };
   }
 }
 
 export async function handleEditProject(prevState: FormState, data: FormData): Promise<FormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = editProjectSchema.safeParse(formData);
+  const formDataObject = Object.fromEntries(data);
+  const parsed = editProjectSchema.safeParse(formDataObject);
 
   if (!parsed.success) {
     return {
       message: "Invalid project data for editing.",
       issues: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
-      fields: formData as any,
+      fields: serializeFormDataForErrorState(formDataObject),
       success: false,
     };
   }
@@ -162,7 +176,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     return { message: `Project "${updatedProject.title}" updated successfully!`, success: true, projectId: updatedProject.id };
   } catch (error) {
     console.error("handleEditProject error:", error);
-    return { message: "Failed to update project. Check server logs.", success: false, fields: formData as any };
+    return { message: "Failed to update project. Check server logs.", success: false, fields: serializeFormDataForErrorState(formDataObject) };
   }
 }
 
@@ -195,14 +209,14 @@ const homePageContentSchema = z.object({
 });
 
 export async function handleUpdateHomePageContent(prevState: FormState, data: FormData): Promise<FormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = homePageContentSchema.safeParse(formData);
+  const formDataObject = Object.fromEntries(data);
+  const parsed = homePageContentSchema.safeParse(formDataObject);
 
   if (!parsed.success) {
     return {
       message: "Invalid home page content data.",
       issues: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
-      fields: formData as any,
+      fields: serializeFormDataForErrorState(formDataObject),
       success: false,
     };
   }
@@ -219,7 +233,7 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
     if (error instanceof Error) {
         message = error.message;
     }
-    return { message, success: false, fields: formData as any };
+    return { message, success: false, fields: serializeFormDataForErrorState(formDataObject) };
   }
 }
 
@@ -232,7 +246,7 @@ const experienceItemSchema = z.object({
   iconName: z.string().optional().describe("Lucide icon name (e.g., Zap, Briefcase)"),
 });
 
-const skillItemSchema = z.object({ // Added skillItemSchema
+const skillItemSchema = z.object({
   name: z.string().min(2, "Skill name is too short."),
   iconName: z.string().min(1, "Skill icon name is required.").describe("Lucide icon name (e.g., Cpu, Sparkles)"),
   level: z.string().min(3, "Skill level is too short."),
@@ -254,7 +268,7 @@ const aboutPageContentSchema = z.object({
   profileCardContactText: z.string().min(3, "Profile card contact text is too short."),
   coreCompetenciesTitle: z.string().min(5, "Core competencies title is too short."),
   coreCompetenciesSubtitle: z.string().min(10, "Core competencies subtitle is too short."),
-  skillsJSON: z.string().transform((str, ctx) => { // Added skillsJSON
+  skillsJSON: z.string().transform((str, ctx) => { 
     if (!str.trim()) {
       return [];
     }
@@ -305,14 +319,14 @@ const aboutPageContentSchema = z.object({
 });
 
 export async function handleUpdateAboutPageContent(prevState: FormState, data: FormData): Promise<FormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = aboutPageContentSchema.safeParse(formData);
+  const formDataObject = Object.fromEntries(data);
+  const parsed = aboutPageContentSchema.safeParse(formDataObject);
 
   if (!parsed.success) {
     return {
       message: "Invalid about page data.",
       issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`),
-      fields: formData as any,
+      fields: serializeFormDataForErrorState(formDataObject),
       success: false
     };
   }
@@ -329,7 +343,7 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     const fullContentToUpdate: AboutPageContent = {
       ...currentContent,
       ...restOfDataFromForm,
-      skills: skillsJSON, // Use parsed skillsJSON
+      skills: skillsJSON, 
       experienceItems: experienceItemsJSON,
       profileImage: profileImageToSave,
     };
@@ -346,7 +360,7 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     if (error instanceof Error) {
         message = error.message;
     }
-    return { message, success: false, fields: formData as any };
+    return { message, success: false, fields: serializeFormDataForErrorState(formDataObject) };
   }
 }
 
@@ -359,13 +373,13 @@ const contactPageContentSchema = z.object({
 });
 
 export async function handleUpdateContactPageContent(prevState: FormState, data: FormData): Promise<FormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = contactPageContentSchema.safeParse(formData);
+  const formDataObject = Object.fromEntries(data);
+  const parsed = contactPageContentSchema.safeParse(formDataObject);
   if (!parsed.success) {
     return {
       message: "Invalid contact page data.",
       issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`),
-      fields: formData as any,
+      fields: serializeFormDataForErrorState(formDataObject),
       success: false
     };
   }
@@ -381,7 +395,7 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     if (error instanceof Error) {
         message = error.message;
     }
-    return { message, success: false, fields: formData as any };
+    return { message, success: false, fields: serializeFormDataForErrorState(formDataObject) };
   }
 }
 
@@ -392,7 +406,7 @@ export async function fetchProjectsForAdminDashboard(): Promise<Project[]> {
     return projects;
   } catch (error) {
     console.error("Error fetching projects for admin dashboard:", error);
-    return []; // Return empty array on error to prevent breaking the client
+    return []; 
   }
 }
 
@@ -402,7 +416,7 @@ export async function fetchProjectForAdminEdit(id: string): Promise<Project | nu
     return project;
   } catch (error) {
     console.error(`Error fetching project with id ${id} for admin edit:`, error);
-    return null; // Return null on error
+    return null; 
   }
 }
 
@@ -435,3 +449,4 @@ export async function fetchContactPageContentForAdminEdit(): Promise<ContactPage
     return null;
   }
 }
+
