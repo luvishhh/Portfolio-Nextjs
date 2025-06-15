@@ -30,48 +30,52 @@ function SubmitButton({ text }: { text: string }) {
 
 export default function AboutContentForm({ formAction, initialState, content, buttonText = "Save Changes" }: AboutContentFormProps) {
 
-  // currentFieldValues will prioritize data from initialState.fields (e.g., on a validation error)
-  // over the initially fetched content. This ensures user's latest input is shown.
-  const currentFieldValues = initialState?.fields ? initialState.fields as AboutPageContent & {[key: string]: any} : content;
+  // Corrected logic:
+  // Use initialState.fields if a form action has occurred (indicated by initialState.message being set).
+  // Otherwise (on initial load), use the fetched 'content'.
+  const currentFieldValues = (initialState?.message && initialState.fields)
+    ? initialState.fields as AboutPageContent & {[key: string]: any}
+    : content;
 
   const sections = [
     {
       title: "Main Page Information",
       description: "Set the primary titles, introduction, and personal narrative for your About page.",
       fields: [
-        { id: "mainTitle", label: "Main Title (e.g., 'Codename: Muse')", type: "text", defaultValue: currentFieldValues.mainTitle, required: true },
-        { id: "mainSubtitle", label: "Main Subtitle (e.g., 'Architect of Digital Realities...')", type: "text", defaultValue: currentFieldValues.mainSubtitle, required: true },
-        { id: "greeting", label: "Greeting Text", type: "text", defaultValue: currentFieldValues.greeting, required: true },
-        { id: "name", label: "Your Name/Alias", type: "text", defaultValue: currentFieldValues.name, required: true },
-        { id: "introduction", label: "Introduction Paragraph", type: "textarea", defaultValue: currentFieldValues.introduction, required: true, rows: 4 },
-        { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: currentFieldValues.philosophy, required: true, rows: 3 },
-        { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: currentFieldValues.futureFocus, required: true, rows: 3 },
+        { id: "mainTitle", label: "Main Title (e.g., 'Codename: Muse')", type: "text", defaultValue: currentFieldValues?.mainTitle, required: true },
+        { id: "mainSubtitle", label: "Main Subtitle (e.g., 'Architect of Digital Realities...')", type: "text", defaultValue: currentFieldValues?.mainSubtitle, required: true },
+        { id: "greeting", label: "Greeting Text", type: "text", defaultValue: currentFieldValues?.greeting, required: true },
+        { id: "name", label: "Your Name/Alias", type: "text", defaultValue: currentFieldValues?.name, required: true },
+        { id: "introduction", label: "Introduction Paragraph", type: "textarea", defaultValue: currentFieldValues?.introduction, required: true, rows: 4 },
+        { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: currentFieldValues?.philosophy, required: true, rows: 3 },
+        { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: currentFieldValues?.futureFocus, required: true, rows: 3 },
       ]
     },
     {
       title: "Profile Card Details",
       description: "Customize the appearance and text of the interactive profile card.",
       fields: [
-        { id: "profileImageFile", label: "Profile Image Upload", type: "file", required: false, description: `Current: ${currentFieldValues.profileImage ? currentFieldValues.profileImage.substring(0,70)+'...' : 'None'}. Replaces current if new file selected.` },
-        { id: "dataAiHint", label: "Profile Image AI Hint (Max 2 words)", type: "text", defaultValue: currentFieldValues.dataAiHint, placeholder: "e.g. futuristic avatar" },
-        { id: "profileCardTitle", label: "Profile Card - Title", type: "text", defaultValue: currentFieldValues.profileCardTitle, required: true },
-        { id: "profileCardHandle", label: "Profile Card - Handle", type: "text", defaultValue: currentFieldValues.profileCardHandle, required: true },
-        { id: "profileCardStatus", label: "Profile Card - Status", type: "text", defaultValue: currentFieldValues.profileCardStatus, required: true },
-        { id: "profileCardContactText", label: "Profile Card - Contact Button Text", type: "text", defaultValue: currentFieldValues.profileCardContactText, required: true },
+        { id: "profileImageFile", label: "Profile Image Upload", type: "file", required: false, description: `Current: ${currentFieldValues?.profileImage ? currentFieldValues.profileImage.substring(0,70)+'...' : 'None'}. Replaces current if new file selected.` },
+        { id: "dataAiHint", label: "Profile Image AI Hint (Max 2 words)", type: "text", defaultValue: currentFieldValues?.dataAiHint, placeholder: "e.g. futuristic avatar" },
+        { id: "profileCardTitle", label: "Profile Card - Title", type: "text", defaultValue: currentFieldValues?.profileCardTitle, required: true },
+        { id: "profileCardHandle", label: "Profile Card - Handle", type: "text", defaultValue: currentFieldValues?.profileCardHandle, required: true },
+        { id: "profileCardStatus", label: "Profile Card - Status", type: "text", defaultValue: currentFieldValues?.profileCardStatus, required: true },
+        { id: "profileCardContactText", label: "Profile Card - Contact Button Text", type: "text", defaultValue: currentFieldValues?.profileCardContactText, required: true },
       ]
     },
     {
       title: "Skills Section (Core Competencies)",
       description: "Define the title, subtitle, and list of skills for this section.",
       fields: [
-        { id: "coreCompetenciesTitle", label: "Section Title", type: "text", defaultValue: currentFieldValues.coreCompetenciesTitle, required: true },
-        { id: "coreCompetenciesSubtitle", label: "Section Subtitle", type: "text", defaultValue: currentFieldValues.coreCompetenciesSubtitle, required: true },
+        { id: "coreCompetenciesTitle", label: "Section Title", type: "text", defaultValue: currentFieldValues?.coreCompetenciesTitle, required: true },
+        { id: "coreCompetenciesSubtitle", label: "Section Subtitle", type: "text", defaultValue: currentFieldValues?.coreCompetenciesSubtitle, required: true },
         {
           id: "skillsJSON",
           label: "Skills (JSON format)",
           type: "textarea",
-          // If skillsJSON (string) exists in currentFieldValues (e.g. from form error state), use it. Otherwise, stringify the skills array.
-          defaultValue: typeof currentFieldValues.skillsJSON === 'string' ? currentFieldValues.skillsJSON : JSON.stringify(currentFieldValues.skills || [], null, 2),
+          defaultValue: typeof currentFieldValues?.skillsJSON === 'string' 
+            ? currentFieldValues.skillsJSON 
+            : JSON.stringify(currentFieldValues?.skills || [], null, 2),
           required: false,
           rows: 10,
           description: "Array of skill items. Each: {\"name\": string, \"iconName\": string (Lucide icon e.g. Cpu), \"level\": string}. Ensure valid JSON.",
@@ -83,14 +87,15 @@ export default function AboutContentForm({ formAction, initialState, content, bu
       title: "Experience Section (Chronicles)",
       description: "Set the title, subtitle, and timeline of your professional experience.",
       fields: [
-        { id: "chroniclesTitle", label: "Section Title", type: "text", defaultValue: currentFieldValues.chroniclesTitle, required: true },
-        { id: "chroniclesSubtitle", label: "Section Subtitle", type: "text", defaultValue: currentFieldValues.chroniclesSubtitle, required: true },
+        { id: "chroniclesTitle", label: "Section Title", type: "text", defaultValue: currentFieldValues?.chroniclesTitle, required: true },
+        { id: "chroniclesSubtitle", label: "Section Subtitle", type: "text", defaultValue: currentFieldValues?.chroniclesSubtitle, required: true },
         {
           id: "experienceItemsJSON",
           label: "Experience Timeline Items (JSON format)",
           type: "textarea",
-           // If experienceItemsJSON (string) exists in currentFieldValues (e.g. from form error state), use it. Otherwise, stringify the array.
-          defaultValue: typeof currentFieldValues.experienceItemsJSON === 'string' ? currentFieldValues.experienceItemsJSON : JSON.stringify(currentFieldValues.experienceItems || [], null, 2),
+          defaultValue: typeof currentFieldValues?.experienceItemsJSON === 'string' 
+            ? currentFieldValues.experienceItemsJSON 
+            : JSON.stringify(currentFieldValues?.experienceItems || [], null, 2),
           required: false,
           rows: 12,
           description: "Array of experience items. Each: {\"id\": string, \"title\": string, \"company\": string, \"period\": string, \"description\": string, \"iconName\": string (Lucide e.g. Zap)}. Ensure valid JSON.",
@@ -112,7 +117,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
             {section.fields.map(field => (
               <div key={field.id}>
                 <Label htmlFor={field.id} className="font-semibold">{field.label}{field.required && <span className="text-destructive">*</span>}</Label>
-                {field.description && !field.type?.includes("file") && ( // Only show general description if not file, file type has its own
+                {field.description && !field.type?.includes("file") && ( 
                   <p className="text-xs text-muted-foreground mt-0.5 mb-1.5 flex items-start">
                     <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
                     {field.description}
@@ -122,7 +127,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
                   <Textarea
                     id={field.id}
                     name={field.id}
-                    defaultValue={field.defaultValue as string} // Uses adjusted defaultValue
+                    defaultValue={field.defaultValue as string ?? ""} 
                     required={field.required}
                     rows={(field.rows as number) || 3}
                     className={`mt-1 ${field.className || ''}`}
@@ -130,7 +135,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
                   />
                 ) : field.type === "file" ? (
                   <div className="mt-1">
-                     {field.description && ( // Special description for file inputs
+                     {field.description && ( 
                       <p className="text-xs text-muted-foreground mt-0.5 mb-1.5 flex items-start">
                         <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
                         {field.description}
@@ -152,7 +157,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
                     id={field.id}
                     name={field.id}
                     type={field.type}
-                    defaultValue={field.defaultValue as string | number}
+                    defaultValue={field.defaultValue as string | number ?? ""}
                     required={field.required}
                     className={`mt-1 ${field.className || ''}`}
                     placeholder={field.placeholder}
