@@ -1,4 +1,7 @@
 // @/src/lib/mongodb.ts
+import { config as dotenvConfig } from 'dotenv';
+dotenvConfig(); // Load environment variables from .env file
+
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
@@ -31,8 +34,4 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
   // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
-}
-
-export default clientPromise;
+  client = new MongoClient(
