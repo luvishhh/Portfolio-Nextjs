@@ -1,34 +1,43 @@
 // @/app/about/page.tsx
-"use client"; 
+"use client";
 
 import { fetchAboutPageContent } from './actions'; // Import the new server action
-import { UserCircle, Sparkles, History, Database, Cpu, Code, Loader2 } from 'lucide-react';
+import { UserCircle, Sparkles, History, Database, Cpu, Code as CodeIcon, Loader2, Lightbulb, BrainCircuit, Zap, Building, type LucideIcon } from 'lucide-react'; // Added CodeIcon and more for skills
 import ExperienceTimeline from '@/components/experience-timeline';
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import ProfileCard from '@/components/profile-card'; 
-import '@/components/profile-card.css'; 
+import ProfileCard from '@/components/profile-card';
+import '@/components/profile-card.css';
 import { useEffect, useState } from 'react';
 import type { AboutPageContent } from '@/types/page-content';
+import type { SkillItem } from '@/types/skill'; // Import SkillItem
 
-const skills = [
-  { name: "Quantum UI/UX Design", icon: Cpu, level: "Expert" },
-  { name: "AI-Driven Prototyping", icon: Sparkles, level: "Advanced" },
-  { name: "Holographic Interfaces", icon: Code, level: "Proficient" },
-  { name: "Neural Network Visualization", icon: Database, level: "Advanced" },
-  { name: "Temporal Mechanics (Theoretical)", icon: History, level: "Novice" },
-];
+// Icon map for skills section - extend as needed
+const skillIconMap: { [key: string]: LucideIcon } = {
+  Cpu,
+  Sparkles,
+  Code: CodeIcon, // Renamed for clarity if 'Code' component is used elsewhere
+  Database,
+  History: HistoryIcon, // Renamed for clarity
+  Zap,
+  Lightbulb,
+  BrainCircuit,
+  Building,
+  // Add more Lucide icons here as you define them in your skills JSON
+  // e.g., Atom, Palette, Server, Cloud, ...
+};
+
 
 export default function AboutPage() {
   const [content, setContent] = useState<AboutPageContent | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
-    async function loadContent() { 
+    async function loadContent() {
       try {
         setLoading(true);
-        const fetchedContent = await fetchAboutPageContent(); // Call the server action
+        const fetchedContent = await fetchAboutPageContent();
         setContent(fetchedContent);
       } catch (error) {
         console.error("Failed to fetch about page content:", error);
@@ -54,6 +63,7 @@ export default function AboutPage() {
 
   const profileImageUrl = content.profileImage || "https://placehold.co/400x400.png";
   const experienceItems: ExperienceItem[] = content.experienceItems || [];
+  const skillsToDisplay: SkillItem[] = content.skills || []; // Use skills from content
 
 
   return (
@@ -73,13 +83,13 @@ export default function AboutPage() {
             <div className="lg:col-span-2 flex justify-center items-center animate-in fade-in-0 slide-in-from-left-20 duration-700 delay-300">
               <ProfileCard
                 avatarUrl={profileImageUrl}
-                miniAvatarUrl={profileImageUrl} 
+                miniAvatarUrl={profileImageUrl}
                 name={content.name}
                 title={content.profileCardTitle}
                 handle={content.profileCardHandle}
                 status={content.profileCardStatus}
-                iconUrl="https://placehold.co/200x200.png?text=PatternFX" 
-                grainUrl="https://placehold.co/300x300.png?text=GrainFX" 
+                iconUrl="https://placehold.co/200x200.png?text=PatternFX"
+                grainUrl="https://placehold.co/300x300.png?text=GrainFX"
                 enableTilt={true}
                 showUserInfo={true}
                 className="max-w-sm mx-auto"
@@ -119,21 +129,24 @@ export default function AboutPage() {
             <p className="text-md sm:text-lg text-muted-foreground mt-3 animate-in fade-in-0 slide-in-from-bottom-10 duration-700 delay-300">{content.coreCompetenciesSubtitle}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {skills.map((skill, index) => (
-              <Card 
-                key={skill.name} 
-                className="bg-background/70 border-primary/20 shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-10 duration-500"
-                style={{ animationDelay: `${index * 100 + 400}ms` }}
-              >
-                <CardHeader className="flex flex-row items-center gap-4 pb-3">
-                  <skill.icon className="h-8 w-8 text-primary" />
-                  <CardTitle className="font-headline text-xl text-foreground">{skill.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge variant="secondary" className="bg-accent/20 text-accent-foreground">{skill.level}</Badge>
-                </CardContent>
-              </Card>
-            ))}
+            {skillsToDisplay.map((skill, index) => {
+              const IconComponent = skillIconMap[skill.iconName] || Sparkles; // Default to Sparkles if icon not found
+              return (
+                <Card
+                  key={skill.name}
+                  className="bg-background/70 border-primary/20 shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-10 duration-500"
+                  style={{ animationDelay: `${index * 100 + 400}ms` }}
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 pb-3">
+                    <IconComponent className="h-8 w-8 text-primary" />
+                    <CardTitle className="font-headline text-xl text-foreground">{skill.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge variant="secondary" className="bg-accent/20 text-accent-foreground">{skill.level}</Badge>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>

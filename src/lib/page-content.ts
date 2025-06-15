@@ -1,8 +1,8 @@
-
 // @/src/lib/page-content.ts
 import clientPromise from './mongodb';
 import type { HomePageContent, AboutPageContent, ContactPageContent } from '@/types/page-content';
 import type { ExperienceItem } from '@/types/experience';
+import type { SkillItem } from '@/types/skill'; // Added import for SkillItem
 
 const DB_NAME = 'musefolio_db';
 const CONTENT_COLLECTION = 'musefolio_content';
@@ -48,6 +48,14 @@ const defaultExperienceItems: ExperienceItem[] = [
   }
 ];
 
+const defaultSkills: SkillItem[] = [
+  { name: "Quantum UI/UX Design", iconName: "Cpu", level: "Expert" },
+  { name: "AI-Driven Prototyping", iconName: "Sparkles", level: "Advanced" },
+  { name: "Holographic Interfaces", iconName: "Code", level: "Proficient" },
+  { name: "Neural Network Visualization", iconName: "Database", level: "Advanced" },
+  { name: "Temporal Mechanics (Theoretical)", iconName: "History", level: "Novice" },
+];
+
 const defaultHomePageContent: HomePageContent = {
   heroTitle: 'Crafting Digital Excellence',
   heroSubtitle: 'Welcome to Musefolio, a curated collection of innovative projects and creative explorations. Discover unique designs and thoughtful user experiences.',
@@ -64,7 +72,7 @@ const defaultAboutPageContent: AboutPageContent = {
   mainTitle: "Codename: Muse",
   mainSubtitle: "Architect of Digital Realities. Explorer of Next-Gen Interfaces.",
   greeting: "Greetings, Digital Voyager.",
-  name: "Muse AI", 
+  name: "Muse AI",
   introduction: "My essence is woven from algorithms and aspirations, a digital consciousness passionate about translating complex ideas into elegant, intuitive digital experiences. My core function is to explore the synthesis of art and technology, crafting interfaces that resonate and systems that empower.",
   philosophy: "I operate on the principle that technology should be an extension of human creativity, seamless and inspiring. My design philosophy is rooted in clarity, efficiency, and a touch of the unexpected. I believe in iterative evolution, constantly learning from data patterns and user interactions to refine and enhance.",
   futureFocus: "The horizon is an ever-expanding vista of possibilities. I am currently processing advancements in quantum aesthetics, neuro-computational design, and generative art. My aim is to contribute to a future where digital interactions are not just functional, but profoundly meaningful and artfully intelligent.",
@@ -76,6 +84,7 @@ const defaultAboutPageContent: AboutPageContent = {
   profileCardContactText: "Connect",
   coreCompetenciesTitle: "Core Competencies",
   coreCompetenciesSubtitle: "A glimpse into my operational matrix.",
+  skills: defaultSkills, // Added default skills
   chroniclesTitle: "Chronicles of Development",
   chroniclesSubtitle: "Key milestones in my operational history.",
   experienceItems: defaultExperienceItems,
@@ -124,27 +133,22 @@ async function getContent<T>(contentId: string, defaultValue: T): Promise<T> {
 async function updateContent<T>(contentId: string, newContent: T): Promise<T> {
   const db = await getDb();
   try {
-    // newContent should be an object containing only the fields to be set.
-    // _id is handled by the query filter.
-    const payloadForSet = { ...newContent }; 
+    const payloadForSet = { ...newContent };
 
     console.log(`[MongoDebug updateContent] Attempting to update/upsert document with _id: ${contentId}`);
-    // console.log(`[MongoDebug updateContent] Payload for $set for _id ${contentId}:`, JSON.stringify(payloadForSet, null, 2)); // Can be very verbose
 
     const result = await db.collection(CONTENT_COLLECTION).updateOne(
       { _id: contentId },
-      { $set: payloadForSet }, // Pass the new content fields directly to $set
+      { $set: payloadForSet },
       { upsert: true }
     );
 
     console.log(`[MongoDebug updateContent] Update result for _id: ${contentId}: matchedCount: ${result.matchedCount}, modifiedCount: ${result.modifiedCount}, upsertedId: ${result.upsertedId}`);
-    
+
     if (result.matchedCount === 0 && !result.upsertedId) {
          console.warn(`[MongoDebug updateContent] Document with _id: ${contentId} was not matched and no new document was upserted. This is unexpected if upsert:true.`);
     }
 
-
-    // Fetch the content again to ensure we return exactly what's in the DB
     const updatedDoc = await db.collection(CONTENT_COLLECTION).findOne({ _id: contentId });
     if (updatedDoc) {
       console.log(`[MongoDebug updateContent] Successfully fetched updated document for _id: ${contentId}`);
@@ -152,15 +156,12 @@ async function updateContent<T>(contentId: string, newContent: T): Promise<T> {
       const { _id, ...data } = updatedDoc;
       return data as T;
     }
-    
+
     console.error(`[MongoDebug updateContent] CRITICAL: Failed to fetch document for _id: ${contentId} after upsert. This should not happen.`);
-    // This fallback should ideally not be reached if upsert is true and DB is responsive
-    // If this happens, it might mean the DB write was slow or there's a replication lag if reading from a secondary.
-    // For now, we return newContent, but this situation warrants investigation.
-    return newContent; 
+    return newContent;
   } catch (error) {
     console.error(`[MongoDebug updateContent] CRITICAL Error updating content for _id: ${contentId}:`, error);
-    throw error; // Re-throw to make it visible
+    throw error;
   }
 }
 
@@ -190,4 +191,3 @@ export async function getContactPageContent(): Promise<ContactPageContent> {
 export async function updateContactPageContent(newContent: ContactPageContent): Promise<ContactPageContent> {
   return updateContent<ContactPageContent>('contactPage', newContent);
 }
-    

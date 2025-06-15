@@ -1,20 +1,19 @@
-
 // @/app/admin/actions.ts
 "use server";
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { 
-  addProject as dbAddProject, 
-  updateProject as dbUpdateProject, 
+import {
+  addProject as dbAddProject,
+  updateProject as dbUpdateProject,
   deleteProject as dbDeleteProject,
   getProjectById as dbGetProjectById,
   getProjects as dbGetProjects
 } from "@/lib/projects";
 import type { Project } from "@/types/project";
-import { 
-  updateHomePageContent as dbUpdateHomePageContent, 
-  updateAboutPageContent as dbUpdateAboutPageContent, 
+import {
+  updateHomePageContent as dbUpdateHomePageContent,
+  updateAboutPageContent as dbUpdateAboutPageContent,
   updateContactPageContent as dbUpdateContactPageContent,
   getAboutPageContent as dbGetAboutPageContent,
   getHomePageContent as dbGetHomePageContent,
@@ -22,6 +21,7 @@ import {
 } from "@/lib/page-content";
 import type { HomePageContent, AboutPageContent, ContactPageContent } from "@/types/page-content";
 import type { ExperienceItem } from "@/types/experience";
+import type { SkillItem } from "@/types/skill"; // Added import
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -55,7 +55,7 @@ const addProjectSchema = projectSchemaBase.refine(data => {
   return (data.mainImageFile && data.mainImageFile.size > 0) || (data.imageUrls && data.imageUrls.length > 0);
 }, {
   message: "Either a main image upload or at least one additional image URL is required for a new project.",
-  path: ["mainImageFile"], 
+  path: ["mainImageFile"],
 });
 
 const editProjectSchema = projectSchemaBase.extend({
@@ -66,9 +66,9 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[]>; 
+  fields?: Record<string, string | string[] | File | undefined | boolean | number | ExperienceItem[] | SkillItem[]>; // Added SkillItem[]
   success: boolean;
-  projectId?: string; 
+  projectId?: string;
 };
 
 export async function handleAddProject(prevState: FormState, data: FormData): Promise<FormState> {
@@ -109,7 +109,7 @@ export async function handleAddProject(prevState: FormState, data: FormData): Pr
 export async function handleEditProject(prevState: FormState, data: FormData): Promise<FormState> {
   const formData = Object.fromEntries(data);
   const parsed = editProjectSchema.safeParse(formData);
-  
+
   if (!parsed.success) {
     return {
       message: "Invalid project data for editing.",
@@ -119,7 +119,7 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     };
   }
 
-  const existingProject = await dbGetProjectById(parsed.data.id); 
+  const existingProject = await dbGetProjectById(parsed.data.id);
   if (!existingProject) {
     return { message: "Project not found for editing.", success: false };
   }
@@ -132,14 +132,14 @@ export async function handleEditProject(prevState: FormState, data: FormData): P
     if (imageUrls) {
       updatedImageArray.push(...imageUrls);
     }
-  } else { 
-    if (imageUrls && imageUrls.length > 0) { 
+  } else {
+    if (imageUrls && imageUrls.length > 0) {
       updatedImageArray = [...imageUrls];
-    } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) { 
+    } else if (imageUrls && imageUrls.length === 0 && existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0) ) {
        if(existingProject.images.length > 0 && (!mainImageFile || mainImageFile.size === 0)) {
-         updatedImageArray.push(existingProject.images[0]); 
+         updatedImageArray.push(existingProject.images[0]);
        }
-    } else { 
+    } else {
       updatedImageArray = [...existingProject.images];
     }
   }
@@ -209,7 +209,7 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
 
   try {
     const updatedContent = await dbUpdateHomePageContent(parsed.data as HomePageContent);
-    revalidatePath('/'); 
+    revalidatePath('/');
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
     return { message: "Home page content updated successfully!", success: true, fields: updatedContent as any };
@@ -232,26 +232,55 @@ const experienceItemSchema = z.object({
   iconName: z.string().optional().describe("Lucide icon name (e.g., Zap, Briefcase)"),
 });
 
+const skillItemSchema = z.object({ // Added skillItemSchema
+  name: z.string().min(2, "Skill name is too short."),
+  iconName: z.string().min(1, "Skill icon name is required.").describe("Lucide icon name (e.g., Cpu, Sparkles)"),
+  level: z.string().min(3, "Skill level is too short."),
+});
+
 const aboutPageContentSchema = z.object({
   mainTitle: z.string().min(3, "Main title is too short."),
   mainSubtitle: z.string().min(10, "Main subtitle is too short."),
   greeting: z.string().min(5, "Greeting is too short."),
-  name: z.string().min(2, "Name is too short."), 
+  name: z.string().min(2, "Name is too short."),
   introduction: z.string().min(20, "Introduction is too short."),
   philosophy: z.string().min(20, "Philosophy is too short."),
   futureFocus: z.string().min(20, "Future focus is too short."),
-  profileImageFile: fileSchema, 
-  dataAiHint: z.string().optional().default("profile avatar"), 
+  profileImageFile: fileSchema,
+  dataAiHint: z.string().optional().default("profile avatar"),
   profileCardTitle: z.string().min(3, "Profile card title is too short."),
   profileCardHandle: z.string().min(3, "Profile card handle is too short."),
   profileCardStatus: z.string().min(3, "Profile card status is too short."),
   profileCardContactText: z.string().min(3, "Profile card contact text is too short."),
   coreCompetenciesTitle: z.string().min(5, "Core competencies title is too short."),
   coreCompetenciesSubtitle: z.string().min(10, "Core competencies subtitle is too short."),
+  skillsJSON: z.string().transform((str, ctx) => { // Added skillsJSON
+    if (!str.trim()) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(str);
+      const validated = z.array(skillItemSchema).safeParse(parsed);
+      if (!validated.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Invalid Skills JSON: " + validated.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', '),
+        });
+        return z.NEVER;
+      }
+      return validated.data;
+    } catch (e) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Skills field contains invalid JSON.",
+      });
+      return z.NEVER;
+    }
+  }).optional().default("[]"),
   chroniclesTitle: z.string().min(5, "Chronicles title is too short."),
   chroniclesSubtitle: z.string().min(10, "Chronicles subtitle is too short."),
   experienceItemsJSON: z.string().transform((str, ctx) => {
-    if (!str.trim()) { 
+    if (!str.trim()) {
       return [];
     }
     try {
@@ -272,7 +301,7 @@ const aboutPageContentSchema = z.object({
       });
       return z.NEVER;
     }
-  }).optional().default("[]"), 
+  }).optional().default("[]"),
 });
 
 export async function handleUpdateAboutPageContent(prevState: FormState, data: FormData): Promise<FormState> {
@@ -280,32 +309,33 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
   const parsed = aboutPageContentSchema.safeParse(formData);
 
   if (!parsed.success) {
-    return { 
-      message: "Invalid about page data.", 
-      issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`), 
-      fields: formData as any, 
-      success: false 
+    return {
+      message: "Invalid about page data.",
+      issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`),
+      fields: formData as any,
+      success: false
     };
   }
   try {
-    const currentContent = await dbGetAboutPageContent(); 
-    
-    const { profileImageFile, experienceItemsJSON, ...restOfDataFromForm } = parsed.data;
+    const currentContent = await dbGetAboutPageContent();
 
-    let profileImageToSave = currentContent.profileImage; 
+    const { profileImageFile, experienceItemsJSON, skillsJSON, ...restOfDataFromForm } = parsed.data;
+
+    let profileImageToSave = currentContent.profileImage;
     if (profileImageFile && profileImageFile.size > 0) {
-      profileImageToSave = SIMULATED_PROFILE_IMAGE_URL; 
+      profileImageToSave = SIMULATED_PROFILE_IMAGE_URL;
     }
-    
+
     const fullContentToUpdate: AboutPageContent = {
-      ...currentContent, 
-      ...restOfDataFromForm, 
-      experienceItems: experienceItemsJSON, 
-      profileImage: profileImageToSave, 
+      ...currentContent,
+      ...restOfDataFromForm,
+      skills: skillsJSON, // Use parsed skillsJSON
+      experienceItems: experienceItemsJSON,
+      profileImage: profileImageToSave,
     };
 
     const finalUpdatedContent = await dbUpdateAboutPageContent(fullContentToUpdate);
-    
+
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
@@ -332,11 +362,11 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
   const formData = Object.fromEntries(data);
   const parsed = contactPageContentSchema.safeParse(formData);
   if (!parsed.success) {
-    return { 
-      message: "Invalid contact page data.", 
+    return {
+      message: "Invalid contact page data.",
       issues: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`),
       fields: formData as any,
-      success: false 
+      success: false
     };
   }
   try {
@@ -405,4 +435,3 @@ export async function fetchContactPageContentForAdminEdit(): Promise<ContactPage
     return null;
   }
 }
-    

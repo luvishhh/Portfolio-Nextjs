@@ -1,4 +1,3 @@
-
 // @/components/admin/about-content-form.tsx
 "use client";
 
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import type { AboutPageContent } from "@/types/page-content";
 import type { FormState } from "@/app/admin/actions";
 import { AlertCircle, Loader2, FileImage, Info } from "lucide-react";
+// No direct import of SkillItem here, it's part of AboutPageContent type
 
 interface AboutContentFormProps {
   formAction: (payload: FormData) => void;
@@ -29,10 +29,8 @@ function SubmitButton({ text }: { text: string }) {
 }
 
 export default function AboutContentForm({ formAction, initialState, content, buttonText = "Save Changes" }: AboutContentFormProps) {
-  
-  // Use `initialState.fields` if available (after a submission), otherwise use `content` (for initial load)
-  const currentFieldValues = initialState?.fields ? initialState.fields as unknown as AboutPageContent : content;
 
+  const currentFieldValues = initialState?.fields ? initialState.fields as unknown as AboutPageContent : content;
 
   const fields = [
     // General Info
@@ -44,7 +42,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
     { id: "philosophy", label: "Philosophy Paragraph", type: "textarea", defaultValue: currentFieldValues.philosophy, required: true, rows: 3 },
     { id: "futureFocus", label: "Future Focus Paragraph", type: "textarea", defaultValue: currentFieldValues.futureFocus, required: true, rows: 3 },
     // Profile Image
-    { id: "profileImageFile", label: "Profile Image Upload (Replaces current if new file selected)", type: "file", required: false }, // Not strictly required if an image already exists
+    { id: "profileImageFile", label: "Profile Image Upload (Replaces current if new file selected)", type: "file", required: false },
     { id: "dataAiHint", label: "Profile Image AI Hint (Max 2 words)", type: "text", defaultValue: currentFieldValues.dataAiHint, placeholder: "e.g. futuristic avatar" },
     // Profile Card Specific Text
     { id: "profileCardTitle", label: "Profile Card - Title (e.g., 'Digital Artisan')", type: "text", defaultValue: currentFieldValues.profileCardTitle, required: true },
@@ -52,19 +50,30 @@ export default function AboutContentForm({ formAction, initialState, content, bu
     { id: "profileCardStatus", label: "Profile Card - Status (e.g., 'Online')", type: "text", defaultValue: currentFieldValues.profileCardStatus, required: true },
     { id: "profileCardContactText", label: "Profile Card - Contact Button Text", type: "text", defaultValue: currentFieldValues.profileCardContactText, required: true },
     // Sections Titles
-    { id: "coreCompetenciesTitle", label: "Core Competencies Section Title", type: "text", defaultValue: currentFieldValues.coreCompetenciesTitle, required: true },
-    { id: "coreCompetenciesSubtitle", label: "Core Competencies Section Subtitle", type: "text", defaultValue: currentFieldValues.coreCompetenciesSubtitle, required: true },
+    { id: "coreCompetenciesTitle", label: "Core Competencies / Skills Section Title", type: "text", defaultValue: currentFieldValues.coreCompetenciesTitle, required: true },
+    { id: "coreCompetenciesSubtitle", label: "Core Competencies / Skills Section Subtitle", type: "text", defaultValue: currentFieldValues.coreCompetenciesSubtitle, required: true },
+    // Skills (JSON) - New Field
+    {
+      id: "skillsJSON",
+      label: "Skills (JSON format)",
+      type: "textarea",
+      defaultValue: JSON.stringify(currentFieldValues.skills || [], null, 2),
+      required: false,
+      rows: 10,
+      description: "Enter an array of skill items. Each item: {\"name\": string, \"iconName\": string (Lucide icon e.g. Cpu, Sparkles, Code), \"level\": string (e.g. Expert, Advanced)}. Ensure valid JSON.",
+      className: "font-mono text-sm"
+    },
+    // Experience Section Titles
     { id: "chroniclesTitle", label: "Chronicles (Experience) Section Title", type: "text", defaultValue: currentFieldValues.chroniclesTitle, required: true },
     { id: "chroniclesSubtitle", label: "Chronicles (Experience) Section Subtitle", type: "text", defaultValue: currentFieldValues.chroniclesSubtitle, required: true },
     // Experience Items (JSON)
-    { 
-      id: "experienceItemsJSON", 
-      label: "Experience Timeline Items (JSON format)", 
-      type: "textarea", 
-      // Ensure experienceItems is stringified from currentFieldValues or default to empty array string
-      defaultValue: JSON.stringify(currentFieldValues.experienceItems || [], null, 2), 
-      required: false, 
-      rows: 12, // Increased rows
+    {
+      id: "experienceItemsJSON",
+      label: "Experience Timeline Items (JSON format)",
+      type: "textarea",
+      defaultValue: JSON.stringify(currentFieldValues.experienceItems || [], null, 2),
+      required: false,
+      rows: 12,
       description: "Enter an array of experience items. Each item should be an object. Example: [{\"id\": \"1\", \"title\": \"Lead Designer\", \"company\": \"Tech Corp\", \"period\": \"2020 - Present\", \"description\": \"Led design team.\", \"iconName\": \"Zap\"}]. Ensure valid JSON. Icon names are from lucide-react (e.g., Zap, Briefcase, Code, Lightbulb, BrainCircuit, Building).",
       className: "font-mono text-sm"
     },
@@ -77,7 +86,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
           <Label htmlFor={field.id} className="font-semibold">{field.label}{field.required && <span className="text-destructive">*</span>}</Label>
           {field.description && (
             <p className="text-xs text-muted-foreground mt-0.5 mb-1.5 flex items-start">
-              <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" /> 
+              <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
               {field.description}
             </p>
           )}
@@ -85,7 +94,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
             <Textarea
               id={field.id}
               name={field.id}
-              defaultValue={field.defaultValue as string} // Use resolved default value
+              defaultValue={field.defaultValue as string}
               required={field.required}
               rows={(field.rows as number) || 3}
               className={`mt-1 ${field.className || ''}`}
@@ -112,7 +121,7 @@ export default function AboutContentForm({ formAction, initialState, content, bu
               id={field.id}
               name={field.id}
               type={field.type}
-              defaultValue={field.defaultValue as string | number} // Use resolved default value
+              defaultValue={field.defaultValue as string | number}
               required={field.required}
               className={`mt-1 ${field.className || ''}`}
               placeholder={field.placeholder}

@@ -1,5 +1,6 @@
 // @/src/types/page-content.ts
 import type { ExperienceItem } from '@/types/experience';
+import type { SkillItem } from './skill';
 
 export interface HomePageContent {
   heroTitle: string;
@@ -31,6 +32,7 @@ export interface AboutPageContent {
   // Skills section
   coreCompetenciesTitle: string;
   coreCompetenciesSubtitle: string;
+  skills: SkillItem[]; // Added skills
   // Experience section
   chroniclesTitle: string;
   chroniclesSubtitle: string;
@@ -44,4 +46,3 @@ export interface ContactPageContent {
   contactEmail?: string;
   contactPhone?: string;
 }
-
