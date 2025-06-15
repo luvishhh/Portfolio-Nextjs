@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
         tls: false,
         net: false,
         dns: false,
+        "timers/promises": false, // Added timers/promises
       };
     }
     return config;
