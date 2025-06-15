@@ -66,7 +66,7 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, string | string[] | undefined | boolean | number | ExperienceItem[] | SkillItem[]>; // File removed from here
+  fields?: Record<string, string | string[] | undefined | boolean | number | ExperienceItem[] | SkillItem[]>;
   success: boolean;
   projectId?: string;
 };
@@ -222,11 +222,24 @@ export async function handleUpdateHomePageContent(prevState: FormState, data: Fo
   }
 
   try {
-    const updatedContent = await dbUpdateHomePageContent(parsed.data as HomePageContent);
+    const updatedContentFromDb = await dbUpdateHomePageContent(parsed.data as HomePageContent);
     revalidatePath('/');
     revalidatePath('/admin/edit-home');
     revalidatePath('/admin');
-    return { message: "Home page content updated successfully!", success: true, fields: updatedContent as any };
+    
+    // Sanitize content before returning to client
+    const sanitizedContent: HomePageContent = {
+      heroTitle: updatedContentFromDb.heroTitle,
+      heroSubtitle: updatedContentFromDb.heroSubtitle,
+      heroButtonExplore: updatedContentFromDb.heroButtonExplore,
+      heroButtonContact: updatedContentFromDb.heroButtonContact,
+      featuredWorkTitle: updatedContentFromDb.featuredWorkTitle,
+      featuredWorkViewAll: updatedContentFromDb.featuredWorkViewAll,
+      aiAssistantTitle: updatedContentFromDb.aiAssistantTitle,
+      aiAssistantSubtitle: updatedContentFromDb.aiAssistantSubtitle,
+      aiAssistantButton: updatedContentFromDb.aiAssistantButton,
+    };
+    return { message: "Home page content updated successfully!", success: true, fields: sanitizedContent };
   } catch (error) {
     console.error("handleUpdateHomePageContent error:", error);
     let message = "Failed to update home page content. Check server logs.";
@@ -341,19 +354,49 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     }
 
     const fullContentToUpdate: AboutPageContent = {
-      ...currentContent,
+      ...currentContent, // Start with current content to preserve any fields not in the form
       ...restOfDataFromForm,
       skills: skillsJSON, 
       experienceItems: experienceItemsJSON,
       profileImage: profileImageToSave,
     };
 
-    const finalUpdatedContent = await dbUpdateAboutPageContent(fullContentToUpdate);
+    const updatedContentFromDb = await dbUpdateAboutPageContent(fullContentToUpdate);
 
     revalidatePath('/about');
     revalidatePath('/admin/edit-about');
     revalidatePath('/admin');
-    return { message: "About page content updated successfully!", success: true, fields: finalUpdatedContent as any };
+
+    // Sanitize content before returning to client
+    const sanitizedContent: AboutPageContent = {
+      mainTitle: updatedContentFromDb.mainTitle,
+      mainSubtitle: updatedContentFromDb.mainSubtitle,
+      greeting: updatedContentFromDb.greeting,
+      name: updatedContentFromDb.name,
+      introduction: updatedContentFromDb.introduction,
+      philosophy: updatedContentFromDb.philosophy,
+      futureFocus: updatedContentFromDb.futureFocus,
+      profileImage: updatedContentFromDb.profileImage,
+      dataAiHint: updatedContentFromDb.dataAiHint,
+      profileCardTitle: updatedContentFromDb.profileCardTitle,
+      profileCardHandle: updatedContentFromDb.profileCardHandle,
+      profileCardStatus: updatedContentFromDb.profileCardStatus,
+      profileCardContactText: updatedContentFromDb.profileCardContactText,
+      coreCompetenciesTitle: updatedContentFromDb.coreCompetenciesTitle,
+      coreCompetenciesSubtitle: updatedContentFromDb.coreCompetenciesSubtitle,
+      skills: updatedContentFromDb.skills.map(skill => ({ name: skill.name, iconName: skill.iconName, level: skill.level })),
+      chroniclesTitle: updatedContentFromDb.chroniclesTitle,
+      chroniclesSubtitle: updatedContentFromDb.chroniclesSubtitle,
+      experienceItems: updatedContentFromDb.experienceItems.map(exp => ({ 
+        id: exp.id,
+        title: exp.title,
+        company: exp.company,
+        period: exp.period,
+        description: exp.description,
+        iconName: exp.iconName,
+      })),
+    };
+    return { message: "About page content updated successfully!", success: true, fields: sanitizedContent };
   } catch (error) {
     console.error("handleUpdateAboutPageContent error:", error);
     let message = "Failed to update about page content. Check server logs.";
@@ -384,11 +427,20 @@ export async function handleUpdateContactPageContent(prevState: FormState, data:
     };
   }
   try {
-    const updatedContent = await dbUpdateContactPageContent(parsed.data as ContactPageContent);
+    const updatedContentFromDb = await dbUpdateContactPageContent(parsed.data as ContactPageContent);
     revalidatePath('/contact');
     revalidatePath('/admin/edit-contact');
     revalidatePath('/admin');
-    return { message: "Contact page content updated successfully!", success: true, fields: updatedContent as any };
+
+    // Sanitize content before returning to client
+    const sanitizedContent: ContactPageContent = {
+      title: updatedContentFromDb.title,
+      description: updatedContentFromDb.description,
+      contactName: updatedContentFromDb.contactName,
+      contactEmail: updatedContentFromDb.contactEmail,
+      contactPhone: updatedContentFromDb.contactPhone,
+    };
+    return { message: "Contact page content updated successfully!", success: true, fields: sanitizedContent };
   } catch (error) {
     console.error("handleUpdateContactPageContent error:", error);
     let message = "Failed to update contact page content. Check server logs.";
