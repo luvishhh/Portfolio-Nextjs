@@ -359,8 +359,8 @@ export async function handleUpdateAboutPageContent(prevState: FormState, data: F
     const fullContentToUpdate: AboutPageContent = {
       ...currentContent, 
       ...restOfDataFromForm,
-      skills: skillsJSON, 
-      experienceItems: experienceItemsJSON,
+      skills: skillsJSON as SkillItem[], 
+      experienceItems: experienceItemsJSON as ExperienceItem[],
       profileImage: profileImageToSave,
     };
 
@@ -529,8 +529,8 @@ export async function handleLogin(prevState: FormState, data: FormData): Promise
     cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "true", { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      path: '/admin', 
-      maxAge: 60 * 60 * 24 * 7, 
+      path: '/', // Changed from '/admin' to '/'
+      maxAge: 60 * 60 * 24 * 7, // 1 week
       sameSite: 'lax',
     });
     redirect('/admin'); 
@@ -545,9 +545,11 @@ export async function handleLogin(prevState: FormState, data: FormData): Promise
 
 export async function handleLogout(): Promise<void> {
   const cookieStore = cookies();
-  cookieStore.delete(ADMIN_SESSION_COOKIE_NAME);
+  cookieStore.delete(ADMIN_SESSION_COOKIE_NAME); // Path will default to '/' if not specified, matching the set path
   redirect('/admin/login');
 }
 
+
+    
 
     
