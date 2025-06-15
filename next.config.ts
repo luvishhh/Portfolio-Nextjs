@@ -4,10 +4,10 @@ import type {Configuration as WebpackConfiguration} from 'webpack';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    allowedDevOrigins: [
+  serverActions: {
+    allowedOrigins: [
         'https://6000-firebase-studio-1749905570510.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
-        'http://localhost:9002' // Added local development origin
+        'http://localhost:9002'
     ],
   },
   typescript: {
