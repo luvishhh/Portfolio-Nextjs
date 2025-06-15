@@ -7,8 +7,7 @@ import ExperienceTimeline from '@/components/experience-timeline';
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import ProfileCard from '@/components/profile-card';
-import '@/components/profile-card.css';
+// ProfileCard and its CSS are no longer imported
 import { useEffect, useState } from 'react';
 import type { AboutPageContent } from '@/types/page-content';
 import type { SkillItem } from '@/types/skill'; // Import SkillItem
@@ -17,9 +16,9 @@ import type { SkillItem } from '@/types/skill'; // Import SkillItem
 const skillIconMap: { [key: string]: LucideIcon } = {
   Cpu,
   Sparkles,
-  Code: CodeIcon, // Renamed for clarity if 'Code' component is used elsewhere
+  Code: CodeIcon,
   Database,
-  History: History, // Corrected: Use the imported History icon directly
+  History: History,
   Zap,
   Lightbulb,
   BrainCircuit,
@@ -61,7 +60,7 @@ export default function AboutPage() {
     return <div className="text-center py-10">Failed to load content. Please try again later.</div>;
   }
 
-  const profileImageUrl = (content.profileImage && content.profileImage.trim() !== "") ? content.profileImage.trim() : "https://placehold.co/400x400.png";
+  // profileImageUrl is no longer needed as ProfileCard is removed
   const experienceItems: ExperienceItem[] = content.experienceItems || [];
   const skillsToDisplay: SkillItem[] = content.skills || []; // Use skills from content
 
@@ -79,41 +78,18 @@ export default function AboutPage() {
             <p className="text-md sm:text-lg text-muted-foreground mt-3 animate-in fade-in-0 slide-in-from-bottom-10 duration-700 delay-200">{content.mainSubtitle}</p>
           </div>
 
-          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            <div className="lg:col-span-2 flex justify-center items-center animate-in fade-in-0 slide-in-from-left-20 duration-700 delay-300">
-              <ProfileCard
-                avatarUrl={profileImageUrl}
-                miniAvatarUrl={profileImageUrl}
-                name={content.name}
-                title={content.profileCardTitle}
-                handle={content.profileCardHandle}
-                status={content.profileCardStatus}
-                iconUrl="https://placehold.co/200x200.png?text=PatternFX"
-                grainUrl="https://placehold.co/300x300.png?text=GrainFX"
-                enableTilt={true}
-                showUserInfo={true}
-                className="max-w-sm mx-auto"
-                 onContactClick={() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/contact';
-                  }
-                }}
-                contactText={content.profileCardContactText}
-                data-ai-hint={content.dataAiHint || 'profile avatar'}
-              />
-            </div>
-            <div className="lg:col-span-3 space-y-5 animate-in fade-in-0 slide-in-from-right-20 duration-700 delay-400">
-              <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name.split(" ")[0]}</span></h2>
-              <p className="text-md sm:text-lg text-foreground/80 leading-relaxed">
-                {content.introduction}
-              </p>
-              <p className="text-foreground/70 leading-relaxed">
-                {content.philosophy}
-              </p>
-               <p className="text-foreground/70 leading-relaxed">
-                {content.futureFocus}
-              </p>
-            </div>
+          {/* Text content, ProfileCard removed */}
+          <div className="max-w-3xl mx-auto space-y-6 text-center md:text-left animate-in fade-in-0 slide-in-from-bottom-10 duration-700 delay-300">
+            <h2 className="font-headline text-2xl sm:text-3xl text-foreground">{content.greeting} <span className="text-primary">{content.name.split(" ")[0]}</span></h2>
+            <p className="text-md sm:text-lg text-foreground/80 leading-relaxed">
+              {content.introduction}
+            </p>
+            <p className="text-foreground/70 leading-relaxed">
+              {content.philosophy}
+            </p>
+             <p className="text-foreground/70 leading-relaxed">
+              {content.futureFocus}
+            </p>
           </div>
         </div>
       </section>
