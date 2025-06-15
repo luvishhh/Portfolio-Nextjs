@@ -142,7 +142,7 @@ export default function AboutPage() {
                     <CardTitle className="font-headline text-xl text-foreground">{skill.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Badge variant="secondary" className="bg-accent/20 text-accent-foreground">{skill.level}</Badge>
+                    <Badge variant="secondary" className="bg-accent/20 text-foreground">{skill.level}</Badge>
                   </CardContent>
                 </Card>
               );
