@@ -69,7 +69,7 @@ const editProjectSchema = projectSchemaBase.extend({
 export type FormState = {
   message: string;
   issues?: string[];
-  fields?: Record<string, any>; // Changed to 'any' to accommodate various content types
+  fields?: Record<string, any>; 
   success: boolean;
   projectId?: string;
 };
@@ -504,8 +504,8 @@ export async function fetchContactPageContentForAdminEdit(): Promise<ContactPage
 
 // --- Authentication Actions ---
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
-  password: z.string().min(1, { message: "Password is required." }),
+  email: z.string().trim().email({ message: "Invalid email address." }),
+  password: z.string().trim().min(1, { message: "Password is required." }),
 });
 
 export async function handleLogin(prevState: FormState, data: FormData): Promise<FormState> {
@@ -516,32 +516,27 @@ export async function handleLogin(prevState: FormState, data: FormData): Promise
     return {
       message: "Invalid login data.",
       issues: parsed.error.issues.map((issue) => issue.message),
-      fields: parsed.data, // Send back the parsed data (even if invalid) to repopulate email
+      fields: parsed.data, 
       success: false,
     };
   }
 
   const { email, password } = parsed.data;
 
-  // IMPORTANT: Hardcoded credentials - NOT FOR PRODUCTION
   if (email === "lavishkhare@gmail.com" && password === "admin@123") {
     const cookieStore = cookies();
-    cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "true", { // Value can be a more complex token in production
+    cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "true", { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      path: '/admin', // Restrict cookie to admin paths
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: '/admin', 
+      maxAge: 60 * 60 * 24 * 7, 
       sameSite: 'lax',
     });
-    redirect('/admin'); // Redirect to admin dashboard on successful login
-    // Note: redirect() throws an error to stop further execution and signal the redirect.
-    // So, no FormState needs to be explicitly returned here for the success case IF redirect happens.
-    // However, to satisfy TypeScript if redirect doesn't happen for some reason or for testing:
-    // return { message: "Login successful!", success: true }; 
+    redirect('/admin'); 
   } else {
     return {
       message: "Invalid email or password.",
-      fields: { email }, // Only send back email to repopulate
+      fields: { email }, 
       success: false,
     };
   }
