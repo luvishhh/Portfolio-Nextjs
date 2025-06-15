@@ -19,7 +19,7 @@ const skillIconMap: { [key: string]: LucideIcon } = {
   Sparkles,
   Code: CodeIcon, // Renamed for clarity if 'Code' component is used elsewhere
   Database,
-  History: HistoryIcon, // Renamed for clarity
+  History: History, // Corrected: Use the imported History icon directly
   Zap,
   Lightbulb,
   BrainCircuit,
