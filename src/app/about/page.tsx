@@ -1,12 +1,12 @@
 // @/app/about/page.tsx
 "use client"; 
 
+import { fetchAboutPageContent } from './actions'; // Import the new server action
 import { UserCircle, Sparkles, History, Database, Cpu, Code, Loader2 } from 'lucide-react';
 import ExperienceTimeline from '@/components/experience-timeline';
 import type { ExperienceItem } from '@/types/experience';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getAboutPageContent } from '@/lib/page-content';
 import ProfileCard from '@/components/profile-card'; 
 import '@/components/profile-card.css'; 
 import { useEffect, useState } from 'react';
@@ -25,19 +25,18 @@ export default function AboutPage() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    async function fetchContent() {
+    async function loadContent() { 
       try {
         setLoading(true);
-        const fetchedContent = await getAboutPageContent();
+        const fetchedContent = await fetchAboutPageContent(); // Call the server action
         setContent(fetchedContent);
       } catch (error) {
         console.error("Failed to fetch about page content:", error);
-        // Optionally set some error state or fallback content
       } finally {
         setLoading(false);
       }
     }
-    fetchContent();
+    loadContent();
   }, []);
 
   if (loading) {

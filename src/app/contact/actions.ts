@@ -2,6 +2,21 @@
 "use server";
 
 import { z } from "zod";
+import { getContactPageContent as dbGetContactPageContent } from '@/lib/page-content';
+import type { ContactPageContent } from '@/types/page-content';
+
+// --- Action to fetch contact page content ---
+export async function fetchContactPageData(): Promise<ContactPageContent | null> {
+  try {
+    const content = await dbGetContactPageContent();
+    return content;
+  } catch (error) {
+    console.error("Error fetching contact page content in server action:", error);
+    return null;
+  }
+}
+// --- End of new action ---
+
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),

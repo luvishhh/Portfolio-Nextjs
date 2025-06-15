@@ -9,10 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { submitContactForm, type ContactFormState } from "./actions";
+import { submitContactForm, fetchContactPageData, type ContactFormState } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { MailCheck, AlertCircle, Loader2, User, Phone, Mail as MailIcon } from "lucide-react";
-import { getContactPageContent } from "@/lib/page-content";
 import type { ContactPageContent as ContactPageContentType } from "@/types/page-content";
 
 function SubmitButton() {
@@ -33,10 +32,10 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchContent() {
+    async function loadContent() { 
       try {
         setLoading(true);
-        const fetchedContent = await getContactPageContent();
+        const fetchedContent = await fetchContactPageData(); // Call the new server action
         setContent(fetchedContent);
       } catch (error) {
         console.error("Failed to fetch contact page content:", error);
@@ -44,7 +43,7 @@ export default function ContactPage() {
         setLoading(false);
       }
     }
-    fetchContent();
+    loadContent();
   }, []);
 
   useEffect(() => {
